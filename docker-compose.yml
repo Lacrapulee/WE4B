@@ -1,0 +1,68 @@
+services:
+  # 1. Base de données SQL (Inchangée, juste vérifie tes identifiants)
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: WE4ADB
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./sql/seed.sql:/docker-entrypoint-initdb.d/seed.sql
+  
+  # 2. Ton application PHP (Ton API)
+  php:
+    build: ./docker/php
+    restart: always
+    ports:
+      - "8000:80" # Ton API PHP sera sur http://localhost:8000
+    volumes:
+      # AJUSTEMENT : On pointe vers ton nouveau dossier backend-api
+      - ./backend-api:/var/www/html
+    depends_on:
+      - db
+      - mongodb # PHP attend aussi que Mongo soit prêt
+
+  # 3. L'interface graphique pour MySQL
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    ports:
+      - "8080:80" # http://localhost:8080
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: rootpassword
+    depends_on:
+      - db
+
+
+  # 4. Base de données NoSQL (MongoDB)
+  mongodb:
+    image: mongo:latest
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mongo-data:/data/db # Pour ne pas perdre tes logs à chaque redémarrage
+
+  # 5. L'interface graphique pour MongoDB (L'équivalent de PhpMyAdmin)
+  mongo-express:
+    image: mongo-express:latest
+    restart: always
+    ports:
+      - "8081:8081" # Tu pourras voir tes logs sur http://localhost:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: rootpassword
+      ME_CONFIG_MONGODB_SERVER: mongodb
+    depends_on:
+      - mongodb
+
+# Volume nommé pour sauvegarder les données de Mongo
+volumes:
+  mongo-data:

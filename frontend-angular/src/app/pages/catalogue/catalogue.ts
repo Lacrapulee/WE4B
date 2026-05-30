@@ -3,18 +3,20 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http'; // Import allégé
+import { ArticleComponent } from './article';
+import { CatalogueFilterComponent } from './catalogue-filter';
 
 @Component({
   selector: 'app-catalogue',
   standalone: true,
   // On a enlevé HttpClientModule des imports car provideHttpClient() s'en occupe
-  imports: [CommonModule, RouterModule, ReactiveFormsModule], 
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, ArticleComponent, CatalogueFilterComponent], 
   templateUrl: './catalogue.html'
 })
 export class CatalogueComponent implements OnInit {
   filterForm!: FormGroup;
   categories: any[] = [];
-  items: any[] = [];
+  items: any[] | null = [];
   
   isLoggedIn: boolean = true;
   userId: number = 1;
@@ -52,8 +54,9 @@ export class CatalogueComponent implements OnInit {
       });
   }
 
-  applyFilters() {
-    this.loadProducts(this.filterForm.value);
+  applyFilters(params: any = null) {
+    const query = params ?? this.filterForm.value;
+    this.loadProducts(query);
   }
 
   toggleFavoris(item: any) {

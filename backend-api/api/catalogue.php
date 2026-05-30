@@ -1,7 +1,5 @@
 <?php
-// =========================================================================
-// 1. CONFIGURATION DES HEADERS (Indispensable pour Angular)
-// =========================================================================
+
 // Autorise Angular (port 4200) à interroger cette API
 header("Access-Control-Allow-Origin: http://localhost:4200");
 header("Content-Type: application/json; charset=UTF-8");
@@ -116,7 +114,30 @@ switch ($tri) {
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $articles = $stmt->fetchAll();
+// Ensure all string fields are valid UTF-8 to avoid json_encode failures
+function utf8ize($mixed) {
+    if (is_array($mixed)) {
+        foreach ($mixed as $k => $v) {
+            $mixed[$k] = utf8ize($v);
+        }
+        return $mixed;
+    } elseif (is_string($mixed)) {
+        // Convert from common Windows/Latin1 encodings to UTF-8, ignoring invalid sequences
+        $converted = @iconv('CP1252', 'UTF-8//IGNORE', $mixed);
+        if ($converted === false) {
+            // Last resort: remove invalid bytes
+            return preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $mixed);
+        }
+        return $converted;
+    } else {
+        return $mixed;
+    }
+}
 
+$articles = utf8ize($articles);
+
+// Debug: write the JSON to a temp file so we can inspect server-side output
+@file_put_contents('/tmp/catalogue_debug.json', json_encode($articles));
 
 // =========================================================================
 // 5. SI40 : ENREGISTREMENT DU LOG DANS MONGODB (Asynchrone/Silencieux)

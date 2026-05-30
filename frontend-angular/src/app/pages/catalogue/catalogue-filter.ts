@@ -1,0 +1,36 @@
+import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+
+@Component({
+  selector: 'app-catalogue-filter',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './catalogue-filter.html',
+  styleUrls: ['./catalogue-filter.css']
+})
+export class CatalogueFilterComponent implements OnInit {
+  @Input() initial: any = {};
+  @Input() categories: any[] = [];
+  @Output() apply = new EventEmitter<any>();
+
+  filterForm!: FormGroup;
+
+  constructor(private fb: FormBuilder) {}
+
+  ngOnInit(): void {
+    this.filterForm = this.fb.group({
+      search: [this.initial.search || ''],
+      categorie: [this.initial.categorie || ''],
+      ville: [this.initial.ville || ''],
+      distance: [this.initial.distance || ''],
+      prix_min: [this.initial.prix_min || ''],
+      prix_max: [this.initial.prix_max || ''],
+      tri: [this.initial.tri || 'date_recent']
+    });
+  }
+
+  onSubmit() {
+    this.apply.emit(this.filterForm.value);
+  }
+}

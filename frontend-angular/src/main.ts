@@ -7,4 +7,12 @@ import { AppComponent } from './app/app';
 
 registerLocaleData(localeFr, 'fr-FR');
 
-bootstrapApplication(AppComponent, appConfig).catch((err) => console.error(err));
+bootstrapApplication(AppComponent, appConfig)
+	.then(() => {
+		try {
+			document.body.classList.remove('preboot');
+		} catch (e) {
+			// ignore in non-browser env
+		}
+	})
+	.catch((err) => console.error(err));

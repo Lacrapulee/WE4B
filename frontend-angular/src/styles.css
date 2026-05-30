@@ -166,8 +166,15 @@ footer {
     }
 }
 
-img {
+/* Logo small size; product thumbnails are handled by component CSS */
+img.logo {
     width: 55px;
+    height: auto;
+}
+
+/* Default images: responsive */
+img:not(.logo) {
+    max-width: 100%;
     height: auto;
 }
 

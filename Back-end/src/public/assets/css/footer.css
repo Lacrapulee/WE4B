@@ -1,0 +1,67 @@
+
+.site-footer {
+    background-color: #DCEBEC !important;
+    padding: 48px 20px 24px 20px !important;
+    margin-top: auto !important;
+    width: 100% !important;
+    border-top: 1px solid #c5dadd !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+}
+
+.site-footer .footer-container {
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+}
+
+
+.site-footer .footer-title {
+    color: #005F83 !important;
+    font-size: 1.125rem !important;
+    font-weight: 700 !important;
+    margin: 0 0 1rem 0 !important;
+    border: none !important;
+    padding: 0 !important;
+    text-transform: none !important;
+}
+
+
+.site-footer ul.footer-links {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.site-footer ul.footer-links li {
+    list-style-type: none !important;
+    margin-bottom: 0.5rem !important;
+}
+
+
+.site-footer ul.footer-links a {
+    color: #4b5563 !important;
+    text-decoration: none !important;
+    font-size: 0.875rem !important;
+    transition: color 0.2s ease !important;
+}
+
+.site-footer ul.footer-links a:hover {
+    color: #005F83 !important;
+}
+
+
+.site-footer .footer-bottom {
+    margin-top: 2.5rem !important;
+    padding-top: 1.5rem !important;
+    border-top: 1px solid #b8d1d4 !important;
+}
+
+.site-footer .footer-bottom p {
+    color: #6b7280 !important;
+    font-size: 0.75rem !important;
+    margin: 0 !important;
+}
+
+.site-footer .footer-bottom strong {
+    color: #005F83 !important;
+    font-weight: 700 !important;
+}

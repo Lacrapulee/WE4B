@@ -1,5 +1,5 @@
 services:
-  # 1. Base de données SQL (Inchangée, juste vérifie tes identifiants)
+  # 1. Ta base de données
   db:
     image: mysql:8.0
     restart: always
@@ -8,71 +8,41 @@ services:
       MYSQL_DATABASE: WE4ADB
     ports:
       - "3306:3306"
-
-  # 1bis. Initialisation SQL à chaque démarrage de docker compose
-  db-init:
-    image: mysql:8.0
-    restart: "no"
-    depends_on:
-      - db
     volumes:
-      - ./sql/init.sql/init.sql:/scripts/01-init.sql:ro
-      - ./sql/seed.sql/seed.sql:/scripts/02-seed.sql:ro
-    command: >
-      sh -c "until mysqladmin ping -h db -uroot -prootpassword --silent; do sleep 1; done;
-      mysql -h db -uroot -prootpassword < /scripts/01-init.sql &&
-      mysql -h db -uroot -prootpassword < /scripts/02-seed.sql"
-
-  # 2. Ton application PHP (Ton API)
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./sql/seed.sql:/docker-entrypoint-initdb.d/seed.sql
+  
+  # 2. Ton application PHP (L'API)
   php:
     build: ./docker/php
     restart: always
     ports:
-      - "8000:80" # Ton API PHP sera sur http://localhost:8000
+      - "8000:80" # Ton API sera sur http://localhost:8000
     volumes:
-      - ./backend-api:/var/www/html
+      - ./Back-end/src:/var/www/html
     depends_on:
       - db
-      - mongodb
 
-  # 3. L'interface graphique pour MySQL
+  # 3. L'interface graphique pour gérer la DB
   phpmyadmin:
     image: phpmyadmin
     restart: always
     ports:
-      - "8080:80" # http://localhost:8080
+      - "8080:80" # phpMyAdmin sera sur http://localhost:8080
     environment:
       PMA_HOST: db
       MYSQL_ROOT_PASSWORD: rootpassword
     depends_on:
       - db
 
-
-  # 4. Base de données NoSQL (MongoDB)
-  mongodb:
-    image: mongo:latest
-    restart: always
+  # 4. Le Front-End Angular
+  angular:
+    image: node:20-alpine
+    working_dir: /app
     ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      - "4200:4200"
     volumes:
-      - mongo-data:/data/db # Pour ne pas perdre tes logs à chaque redémarrage
-
-  # 5. L'interface graphique pour MongoDB (L'équivalent de PhpMyAdmin)
-  mongo-express:
-    image: mongo-express:latest
-    restart: always
-    ports:
-      - "8081:8081" # Tu pourras voir tes logs sur http://localhost:8081
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: root
-      ME_CONFIG_MONGODB_ADMINPASSWORD: rootpassword
-      ME_CONFIG_MONGODB_SERVER: mongodb
+      - ./Front-end:/app  # Remplace 'angular-app' par le nom de ton dossier Angular
+    command: sh -c "npm install && npm run start -- --host 0.0.0.0"
     depends_on:
-      - mongodb
-
-# Volume nommé pour sauvegarder les données de Mongo
-volumes:
-  mongo-data:
+      - php

@@ -1,0 +1,99 @@
+/* ==========================================================================
+   PAGE PAIEMENT - DESIGN ÉPURÉ
+   ========================================================================== */
+
+.payment-main {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+/* --- CARTES --- */
+.payment-card {
+    background: white;
+    border-radius: 2rem;
+    padding: 2.5rem;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 30px rgba(0, 95, 131, 0.05);
+}
+
+.payment-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 800;
+    color: #94a3b8;
+    margin-bottom: 1.5rem;
+    display: block;
+}
+
+/* --- IMAGE PRODUIT --- */
+.product-preview-img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    border-radius: 1.5rem;
+    background-color: var(--light-gray);
+    margin-bottom: 1.5rem;
+}
+
+/* --- FORMULAIRE --- */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+}
+
+.form-input {
+    width: 100%;
+    background-color: var(--light-gray);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1rem 1.2rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.form-input:focus {
+    background-color: white;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 4px rgba(0, 95, 131, 0.1);
+}
+
+/* --- BOUTONS --- */
+.btn-pay {
+    width: 100%;
+    background-color: var(--primary-blue);
+    color: white;
+    padding: 1.2rem;
+    border-radius: 1.2rem;
+    font-weight: 800;
+    font-size: 1.1rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-top: 1rem;
+}
+
+.btn-pay:hover {
+    background-color: var(--primary-blue-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 95, 131, 0.2);
+}
+
+/* --- RÉUSSITE --- */
+.success-banner {
+    background-color: #ecfdf5;
+    border: 1px solid #10b981;
+    border-radius: 1.2rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    color: #065f46;
+}

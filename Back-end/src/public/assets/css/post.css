@@ -1,0 +1,132 @@
+
+.page-post {
+    background-color: #EDFCFD;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.page-annonce {
+    flex: 1 0 auto;
+    display: flex;
+    justify-content: center;
+    padding: 60px 20px;
+}
+
+
+.form-container {
+    background: white;
+    padding: 40px;
+    border-radius: 2rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    max-width: 650px;
+    width: 100%;
+}
+
+.form-title {
+    color: #111827;
+    font-size: 2rem;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+
+.auth-form h3 {
+    color: #005F83;
+    font-size: 1.1rem;
+    margin-top: 35px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 8px;
+    font-weight: 700;
+}
+
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+
+.auth-form input:not([type="submit"]),
+.auth-form select,
+.auth-form textarea {
+    width: 100%;
+    border: none !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    padding: 12px 0 !important;
+    font-size: 1rem;
+    color: #374151;
+    outline: none !important;
+    background: transparent !important;
+    transition: border-color 0.3s ease;
+    border-radius: 0 !important;
+}
+
+.auth-form input:focus,
+.auth-form select:focus,
+.auth-form textarea:focus {
+    border-bottom: 2px solid #005F83 !important;
+}
+
+.auth-form textarea {
+    height: 100px;
+    resize: vertical;
+}
+
+
+.grid-local {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+
+.auth-form input[type="file"] {
+    border-bottom: none !important;
+    font-size: 0.9rem;
+    padding: 10px 0 !important;
+    cursor: pointer;
+}
+
+
+.btn-auth {
+    width: 100%;
+    background-color: #005F83;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 18px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 30px;
+    transition: all 0.3s ease;
+}
+
+.btn-auth:hover {
+    background-color: #004a66;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 95, 131, 0.2);
+}
+
+
+footer ul, footer li {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+footer a {
+    text-decoration: none !important;
+}

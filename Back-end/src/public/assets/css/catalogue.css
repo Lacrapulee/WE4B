@@ -1,0 +1,89 @@
+
+
+
+section.bg-white {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 95, 131, 0.05);
+}
+
+
+input, select {
+    border: 1px solid #e2e8f0 !important;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+input:focus, select:focus {
+    border-color: #005F83 !important;
+    background-color: #fff !important;
+    box-shadow: 0 0 0 3px rgba(0, 95, 131, 0.1);
+}
+
+
+button[type="submit"] {
+    background-color: #005F83 !important;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    letter-spacing: 1px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+button[type="submit"]:hover {
+    background-color: #004a66 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 95, 131, 0.2);
+}
+
+button[type="submit"]:active {
+    transform: translateY(0);
+}
+
+
+.group {
+    background: #ffffff;
+    border: none !important;
+    border-radius: 15px !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+    text-decoration: none;
+}
+
+.group:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0, 95, 131, 0.1) !important;
+}
+
+
+.group img {
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    width: 100%;
+}
+
+
+.group h3 {
+    font-size: 1.1rem;
+    color: #005F83;
+    margin-bottom: 0.25rem;
+}
+
+.group p.text-blue-600 {
+    color: #1e293b !important;
+    font-size: 1.2rem;
+    font-weight: 800;
+}
+
+
+.group .text-gray-400 {
+    background-color: #f8fafc;
+    padding: 4px 8px;
+    border-radius: 6px;
+    color: #64748b !important;
+}
+

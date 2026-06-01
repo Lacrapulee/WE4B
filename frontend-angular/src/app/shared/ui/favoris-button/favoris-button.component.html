@@ -1,9 +1,0 @@
-<button type="button"
-        class="favoris-btn"
-        [class.filled]="isFavoris"
-        [disabled]="disabled"
-        [attr.title]="disabled ? 'Vous ne pouvez pas aimer votre propre article' : (isFavoris ? 'Retirer des favoris' : 'Ajouter aux favoris')"
-        (click)="onClick($event)"
-        aria-label="Ajouter aux favoris">
-  <span aria-hidden="true">{{ isFavoris ? '★' : '☆' }}</span>
-</button>

@@ -5,8 +5,8 @@ import { CommonModule } from '@angular/common';
   selector: 'app-favoris-button',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './favoris-button.html',
-  styleUrls: ['./favoris-button.css']
+  templateUrl: './favoris-button.component.html',
+  styleUrls: ['./favoris-button.component.css']
 })
 export class FavorisButtonComponent {
   @Input() isFavoris: boolean = false;

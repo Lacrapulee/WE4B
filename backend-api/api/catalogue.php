@@ -1,21 +1,15 @@
 <?php
-
-// Autorise Angular (port 4200) à interroger cette API
 header("Access-Control-Allow-Origin: http://localhost:4200");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
-// Gestion du protocole CORS (Angular envoie parfois une requête OPTIONS avant le GET)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
-// =========================================================================
-// 2. CONNEXIONS AUX BASES DE DONNÉES (SQL & MONGO)
-// =========================================================================
-$sql_host = 'db'; // Nom du service MySQL dans docker-compose
+$sql_host = 'db';
 $sql_db   = 'WE4ADB';
 $sql_user = 'root';
 $sql_pass = 'rootpassword';
@@ -35,35 +29,70 @@ try {
     exit();
 }
 
-// Connexion MongoDB via l'extension native PHP
-// (Nécessite d'avoir installé le driver mongodb via compose ou docker)
-try {
-    // Version simplifiée sans librairie externe (si le driver PHP-Mongo est installé)
-    $mongoClient = new MongoDB\Driver\Manager("mongodb://root:example@localhost:27017");
-} catch (Exception $e) {
-    // On ne bloque pas l'application si les logs foirent, mais on garde une trace
-    $mongoError = $e->getMessage();
+$id       = $_GET['id'] ?? '';
+$search   = $_GET['search'] ?? '';
+$categorie = $_GET['categorie'] ?? '';
+$ville    = $_GET['ville'] ?? '';
+$prix_min = $_GET['prix_min'] ?? '';
+$prix_max = $_GET['prix_max'] ?? '';
+$tri      = $_GET['tri'] ?? 'date_recent';
+
+if (!empty($id)) {
+    try {
+        $stmt = $pdo->prepare(
+            "SELECT
+                a.id,
+                a.vendeur_id,
+                a.categorie_id,
+                a.titre,
+                a.description,
+                a.prix,
+                a.statut,
+                a.ville_nom,
+                a.code_postal,
+                c.nom AS categorie_nom,
+                COALESCE(ai.url_image, 'default.png') AS image,
+                0 AS isFavoris
+             FROM articles a
+             LEFT JOIN categories c ON a.categorie_id = c.id
+             LEFT JOIN article_images ai ON ai.article_id = a.id AND ai.est_principale = 1
+             WHERE a.id = ? AND a.statut = 'en_ligne'
+             LIMIT 1"
+        );
+        $stmt->execute([$id]);
+        $article = $stmt->fetch();
+
+        if (!$article) {
+            http_response_code(404);
+            echo json_encode(["error" => "Article introuvable"]);
+            exit();
+        }
+
+        echo json_encode($article);
+        exit();
+    } catch (Exception $e) {
+        echo json_encode(["error" => "Erreur SQL: " . $e->getMessage()]);
+        exit();
+    }
 }
 
-
-// =========================================================================
-// 3. RECUPERATION DES FILTRES (Depuis Angular via la méthode GET)
-// =========================================================================
-$search    = $_GET['search'] ?? '';
-$categorie = $_GET['categorie'] ?? '';
-$ville     = $_GET['ville'] ?? '';
-$prix_min  = $_GET['prix_min'] ?? '';
-$prix_max  = $_GET['prix_max'] ?? '';
-$tri       = $_GET['tri'] ?? 'date_recent';
-
-
-// =========================================================================
-// 4. CONSTRUCTION DE LA REQUÊTE SQL DYNAMIQUE
-// =========================================================================
-$sql = "SELECT a.*, c.nom as categorie_nom 
-        FROM articles a 
-        LEFT JOIN categories c ON a.categorie_id = c.id 
-        WHERE a.statut = 'en_ligne'";
+$sql = "SELECT
+        a.id,
+        a.vendeur_id,
+        a.categorie_id,
+        a.titre,
+        a.description,
+        a.prix,
+        a.statut,
+        a.ville_nom,
+        a.code_postal,
+        c.nom AS categorie_nom,
+        COALESCE(ai.url_image, 'default.png') AS image,
+        0 AS isFavoris
+    FROM articles a
+    LEFT JOIN categories c ON a.categorie_id = c.id
+    LEFT JOIN article_images ai ON ai.article_id = a.id AND ai.est_principale = 1
+    WHERE a.statut = 'en_ligne'";
 
 $params = [];
 
@@ -93,7 +122,6 @@ if (!empty($prix_max)) {
     $params[] = $prix_max;
 }
 
-// Gestion du Tri
 switch ($tri) {
     case 'prix_min':
         $sql .= " ORDER BY a.prix ASC";
@@ -102,7 +130,7 @@ switch ($tri) {
         $sql .= " ORDER BY a.prix DESC";
         break;
     case 'date_ancien':
-        $sql .= " ORDER BY a.id ASC"; // Supposant que l'ID suit l'ordre chronologique
+        $sql .= " ORDER BY a.id ASC";
         break;
     case 'date_recent':
     default:
@@ -110,67 +138,14 @@ switch ($tri) {
         break;
 }
 
-// Exécution de la requête SQL
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$articles = $stmt->fetchAll();
-// Ensure all string fields are valid UTF-8 to avoid json_encode failures
-function utf8ize($mixed) {
-    if (is_array($mixed)) {
-        foreach ($mixed as $k => $v) {
-            $mixed[$k] = utf8ize($v);
-        }
-        return $mixed;
-    } elseif (is_string($mixed)) {
-        // Convert from common Windows/Latin1 encodings to UTF-8, ignoring invalid sequences
-        $converted = @iconv('CP1252', 'UTF-8//IGNORE', $mixed);
-        if ($converted === false) {
-            // Last resort: remove invalid bytes
-            return preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $mixed);
-        }
-        return $converted;
-    } else {
-        return $mixed;
-    }
+try {
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $articles = $stmt->fetchAll();
+
+    echo json_encode($articles);
+    exit();
+} catch (Exception $e) {
+    echo json_encode(["error" => "Erreur SQL: " . $e->getMessage()]);
+    exit();
 }
-
-$articles = utf8ize($articles);
-
-// Debug: write the JSON to a temp file so we can inspect server-side output
-@file_put_contents('/tmp/catalogue_debug.json', json_encode($articles));
-
-// =========================================================================
-// 5. SI40 : ENREGISTREMENT DU LOG DANS MONGODB (Asynchrone/Silencieux)
-// =========================================================================
-if (isset($mongoClient)) {
-    // On prépare le document JSON demandé par l'énoncé SI40
-    $logDocument = [
-        '_id' => new MongoDB\BSON\ObjectId,
-        'date' => date('Y-m-d H:i:s'),
-        'action' => 'CONSULTATION_CATALOGUE',
-        'criteres_recherche' => [
-            'mots_cles' => $search,
-            'categorie_id' => $categorie,
-            'ville' => $ville,
-            'prix_range' => ['min' => $prix_min, 'max' => $prix_max]
-        ],
-        'nombre_resultats_trouves' => count($articles)
-    ];
-
-    // On injecte le document dans la base "lecoincarre" et la collection "logs"
-    $bulk = new MongoDB\Driver\BulkWrite;
-    $bulk->insert($logDocument);
-    
-    try {
-        $mongoClient->executeBulkWrite('lecoincarre.logs', $bulk);
-    } catch (Exception $e) {
-        // En prod, on logguerait l'erreur dans un fichier php_error.log
-    }
-}
-
-
-// =========================================================================
-// 6. ENVOI DE LA REPONSE EN JSON À ANGULAR
-// =========================================================================
-echo json_encode($articles);
-exit();

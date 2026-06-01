@@ -2,15 +2,13 @@
   <app-catalogue-filter [categories]="categories" (apply)="applyFilters($event)"></app-catalogue-filter>
 
   <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-    <ng-container *ngIf="(items?.length ?? 0) > 0; else noItems">
-      
+    <ng-container *ngIf="items.length > 0; else noItems">
       <app-article *ngFor="let item of items"
                    [item]="item"
                    [isLoggedIn]="isLoggedIn"
                    [userId]="userId"
                    (toggleFavoris)="toggleFavoris($event)">
       </app-article>
-
     </ng-container>
 
     <ng-template #noItems>

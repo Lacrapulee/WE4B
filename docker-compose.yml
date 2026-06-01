@@ -22,7 +22,7 @@ services:
       sh -c "until mysqladmin ping -h db -uroot -prootpassword --silent; do sleep 1; done;
       mysql -h db -uroot -prootpassword < /scripts/01-init.sql &&
       mysql -h db -uroot -prootpassword < /scripts/02-seed.sql"
-  
+
   # 2. Ton application PHP (Ton API)
   php:
     build: ./docker/php
@@ -30,11 +30,10 @@ services:
     ports:
       - "8000:80" # Ton API PHP sera sur http://localhost:8000
     volumes:
-      # AJUSTEMENT : On pointe vers ton nouveau dossier backend-api
       - ./backend-api:/var/www/html
     depends_on:
       - db
-      - mongodb # PHP attend aussi que Mongo soit prêt
+      - mongodb
 
   # 3. L'interface graphique pour MySQL
   phpmyadmin:

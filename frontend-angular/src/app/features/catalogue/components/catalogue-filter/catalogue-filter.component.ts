@@ -6,8 +6,8 @@ import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
   selector: 'app-catalogue-filter',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './catalogue-filter.html',
-  styleUrls: ['./catalogue-filter.css']
+  templateUrl: './catalogue-filter.component.html',
+  styleUrls: ['./catalogue-filter.component.css']
 })
 export class CatalogueFilterComponent implements OnInit {
   @Input() initial: any = {};

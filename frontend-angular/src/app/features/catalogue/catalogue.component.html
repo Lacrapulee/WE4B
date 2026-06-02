@@ -1,0 +1,20 @@
+<main class="max-w-7xl mx-auto px-4 py-8 w-full flex-grow">
+  <app-catalogue-filter [categories]="categories" (apply)="applyFilters($event)"></app-catalogue-filter>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+    <ng-container *ngIf="items.length > 0; else noItems">
+      <app-article *ngFor="let item of items"
+                   [item]="item"
+                   [isLoggedIn]="isLoggedIn"
+                   [userId]="userId"
+                   (toggleFavoris)="toggleFavoris($event)">
+      </app-article>
+    </ng-container>
+
+    <ng-template #noItems>
+      <div class="col-span-full text-center py-20 text-gray-400">
+        <p class="text-lg">Aucun article trouvé.</p>
+      </div>
+    </ng-template>
+  </div>
+</main>

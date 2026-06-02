@@ -1,0 +1,55 @@
+<section class="bg-white p-6 mb-10 shadow rounded-lg">
+  <form [formGroup]="filterForm" (ngSubmit)="onSubmit()" class="space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-xs font-bold uppercase text-gray-400 mb-2">Que cherchez-vous ?</label>
+        <input type="text" formControlName="search" placeholder="Ex: Vélo, iPhone..." class="w-full rounded-lg p-2.5 outline-none bg-gray-50 border border-gray-200">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold uppercase text-gray-400 mb-2">Catégorie</label>
+        <select formControlName="categorie" class="w-full rounded-lg p-2.5 outline-none bg-gray-50 border border-gray-200">
+          <option value="">Toutes les catégories</option>
+          <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.nom }}</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold uppercase text-gray-400 mb-2">Ville</label>
+        <input type="text" formControlName="ville" placeholder="Ex: Paris" class="w-full rounded-lg p-2.5 outline-none bg-gray-50 border border-gray-200">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold uppercase text-gray-400 mb-2">Distance (km)</label>
+        <input type="number" formControlName="distance" placeholder="Ex: 50" min="0" class="w-full rounded-lg p-2.5 outline-none bg-gray-50 border border-gray-200">
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+      <div>
+        <label class="block text-xs font-bold uppercase text-gray-400 mb-2">Prix Min</label>
+        <input type="number" formControlName="prix_min" placeholder="€" class="w-full rounded-lg p-2.5 outline-none bg-gray-50 border border-gray-200">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold uppercase text-gray-400 mb-2">Prix Max</label>
+        <input type="number" formControlName="prix_max" placeholder="€" class="w-full rounded-lg p-2.5 outline-none bg-gray-50 border border-gray-200">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold uppercase text-gray-400 mb-2">Tri</label>
+        <select formControlName="tri" class="w-full rounded-lg p-2.5 outline-none bg-gray-50 border border-gray-200">
+          <option value="date_recent">Date</option>
+          <option value="date_ancien">Date ancienne</option>
+          <option value="prix_min">Prix min</option>
+          <option value="prix_max">Prix max</option>
+          <option value="distance">Distance</option>
+        </select>
+      </div>
+
+      <button type="submit" class="px-6 py-2.5 font-bold transition-all rounded-lg bg-blue-500 text-white hover:bg-blue-600 w-full">
+        Appliquer
+      </button>
+    </div>
+  </form>
+</section>

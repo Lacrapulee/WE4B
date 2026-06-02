@@ -1,0 +1,76 @@
+<header class="main-header">
+  <div class="logo">
+    <a routerLink="/">
+      <img class="logo" src="assets/img/logo.png" alt="Accueil">
+    </a>
+  </div>
+
+  <div class="nav-links">
+    <ng-container *ngIf="isLoggedIn">
+      <a routerLink="/vendre">Vendre</a>
+      <a [routerLink]="['/user', userId]">Mes annonces</a>
+      <a routerLink="/mes-commandes">Mes commandes</a>
+      <a routerLink="/favoris">Favoris</a>
+      
+      <a routerLink="/messages" style="position: relative;">
+        Messages
+        <span *ngIf="unreadMessages > 0" style="
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background-color: #ff4444;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: bold;
+        ">{{ unreadMessages }}</span>
+      </a>
+    </ng-container>
+  </div>
+
+  <div class="search-bar">
+    <form (submit)="onSearch($event)">
+      <input type="text" name="search" placeholder="Rechercher un produit...">
+      <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+    </form>
+  </div>
+
+  <nav class="header-actions">
+    <a *ngIf="isLoggedIn" (click)="logout()" class="btn-secondary cursor-pointer">Déconnexion</a>
+    
+    <ng-container *ngIf="!isLoggedIn">
+      <a routerLink="/login" class="btn-secondary">Connexion</a>
+      <a routerLink="/inscription" class="btn-secondary">Inscription</a>
+    </ng-container>
+    
+    <a [routerLink]="isLoggedIn ? ['/user', userId] : '/login'" class="btn-cart">
+      <i class="fa-solid fa-user"></i>
+    </a>
+  </nav>
+</header>
+
+<main class="min-h-screen">
+  <router-outlet></router-outlet>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-container">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3 class="footer-title">Navigation</h3>
+        <ul class="footer-links">
+          <li><a routerLink="/a-propos">À propos</a></li>
+          <li><a routerLink="/aide">Aide</a></li>
+          <li><a routerLink="/cgu">Conditions générales d'utilisation</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>
+        &copy; 2026 <strong>LeCoinCarré</strong> - Projet WE4B
+      </p>
+    </div>
+  </div>
+</footer>

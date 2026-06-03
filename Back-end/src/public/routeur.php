@@ -1,15 +1,19 @@
 <?php
 
-// 1. DÉMARRAGE DE LA SESSION & SÉCURITÉ
+// 1. CONFIGURATION DE LA SESSION (À faire AVANT session_start)
+// En local sur localhost, on n'utilise pas 'None' pour éviter de casser le HTTP
+ini_set('session.cookie_samesite', 'Lax'); 
+ini_set('session.cookie_secure', '0'); // On reste en '0' car on est en http:// en local
+ini_set('session.cookie_httponly', '1'); // Sécurité : empêche le JavaScript d'accéder au cookie
+
 session_start(); 
 
-// En-têtes CORS indispensables pour communiquer avec Angular
+// 2. EN-TÊTES CORS (Indispensables pour Angular)
 header("Access-Control-Allow-Origin: http://localhost:4200");
-header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Credentials: true"); // Autorise l'échange du cookie de session
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json; charset=UTF-8");
-
 // Gestion du Preflight (requête OPTIONS automatique du navigateur)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -40,7 +44,7 @@ switch ($method) {
     case 'GET':
         switch ($action) {
             case 'catalogue':
-                // require_once __DIR__ . '/../includes/catalogue/catalogue.php';
+                require_once __DIR__ . '/../includes/catalogue/catalogue.php';
                 $response = [
                     'articles'   => $results ?? [],
                     'categories' => $categories ?? []
@@ -49,22 +53,63 @@ switch ($method) {
                 echo json_encode($response);
                 break;
 
-            case 'item':
-                $id = (int)($_GET['id'] ?? 0);
-                // Logique pour récupérer UN article précis...
-                http_response_code(200);
-                echo json_encode(['item' => []]);
-                break;
+           case 'item':
+            // 1. On inclut la logique. Si ça échoue (400 ou 404), le script s'arrêtera à l'intérieur d'item.php
+            require_once __DIR__ . '/../includes/item/item.php';
+            
+            // 2. Si on arrive ici, c'est que le produit existe ! On prépare la réponse JSON pour Angular
+            $response = [
+                'item' => [
+                    'id'          => (int)$product['id'],
+                    'titre'       => (string)$product['titre'],
+                    'prix'        => (float)$product['prix'],
+                    // Décommente les lignes suivantes une par une pour trouver celle qui bloque :
+                    'description' => (string)($product['description'] ?? ''),
+                    'statut'      => (string)($product['statut'] ?? ''),
+                    'categorie'   => (int)($product['categorie_id'] ?? 0),
+                    'vendeur_id'  => (string)($product['vendeur_id'] ?? '')
+                ],
+                'images'     => $allImages ?? ['default.png'],
+                'similarAds' => $similarAds ?? [],
+                'isOwner'    => (bool)$isOwner,
+                'isAdmin'    => (bool)$isAdmin
+            ];
 
-            case 'profile':
-                if (!isset($_SESSION['user_id'])) {
-                    http_response_code(401);
-                    echo json_encode(['error' => 'Non autorisé']);
-                    exit();
-                }
+            http_response_code(200);
+            echo json_encode($response);
+            break;
+
+            case 'user':
+                // if (!isset($_SESSION['user_id'])) {
+                //     http_response_code(401);
+                //     echo json_encode(['error' => 'Non autorisé']);
+                //     exit();
+                // }
                 // Logique profil...
-                break;
+                require_once __DIR__ . '/../includes/user/user.php';
+                // ==========================================
+                // CONSTRUCTION ET ENVOI DE LA RÉPONSE JSON
+                // ==========================================
+                $response = [
+                    'user' => [
+                        'id'              => $user['id'],
+                        'nom'             => $user['nom'],
+                        'prenom'          => $user['prenom'],
+                        'telephone'       => $user['telephone'],
+                        'email'           => $user['email'],
+                        'adresse_postale' => $user['adresse_postale'],
+                        'created_at'      => $user['created_at']
+                    ],
+                    'articles' => $articles ?? [],
+                    'reviews'  => $reviews ?? [],
+                    'isOwner'  => (bool)$is_owner,
+                    'isAdmin'  => (bool)$isAdmin
+                ];
 
+                http_response_code(200);
+                echo json_encode($response);
+                break;
+                
             default:
                 http_response_code(404);
                 echo json_encode(['error' => 'Endpoint GET introuvable']);

@@ -11,7 +11,8 @@ $filters = [
     'prix_min'  => $_GET['prix_min'] ?? '',
     'prix_max'  => $_GET['prix_max'] ?? '',
     'distance'  => $_GET['distance'] ?? '',
-    'tri'       => $_GET['tri'] ?? 'date_recent'
+    'tri'       => $_GET['tri'] ?? 'date_recent',
+    'index'     => $_GET['index'] ?? 0
 ];
 
 $results = getAnnonceRechercheAvancee($pdo, $filters);

@@ -1,5 +1,6 @@
+version: '3.8'
+
 services:
-  # 1. Ta base de données
   db:
     image: mysql:8.0
     restart: always
@@ -11,38 +12,44 @@ services:
     volumes:
       - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
       - ./sql/seed.sql:/docker-entrypoint-initdb.d/seed.sql
-  
-  # 2. Ton application PHP (L'API)
+    # AJOUT : Permet de vérifier si MySQL est vraiment prêt
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      timeout: 5s
+      retries: 5
+
   php:
     build: ./docker/php
     restart: always
     ports:
-      - "8000:80" # Ton API sera sur http://localhost:8000
+      - "8000:80"
     volumes:
-      - ./Back-end/src:/var/www/html
+      # Ajuste ici : assure-toi que le dossier monté contient bien le dossier "public" requis par ton Dockerfile
+      - ./Back-end/src:/var/www/html 
     depends_on:
-      - db
+      db:
+        condition: service_healthy # Attend que la DB soit prête, pas juste démarrée
 
-  # 3. L'interface graphique pour gérer la DB
   phpmyadmin:
     image: phpmyadmin
     restart: always
     ports:
-      - "8080:80" # phpMyAdmin sera sur http://localhost:8080
+      - "8080:80"
     environment:
       PMA_HOST: db
-      MYSQL_ROOT_PASSWORD: rootpassword
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
-  # 4. Le Front-End Angular
   angular:
     image: node:20-alpine
     working_dir: /app
     ports:
       - "4200:4200"
     volumes:
-      - ./Front-end:/app  # Remplace 'angular-app' par le nom de ton dossier Angular
+      - ./Front-end:/app
     command: sh -c "npm install && npm run start -- --host 0.0.0.0"
     depends_on:
       - php

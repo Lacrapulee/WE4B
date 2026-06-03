@@ -1,197 +1,174 @@
 <?php
 
+// 1. DÉMARRAGE DE LA SESSION & SÉCURITÉ
 session_start(); 
 
-// En-têtes CORS pour communiquer avec Angular
+// En-têtes CORS indispensables pour communiquer avec Angular
 header("Access-Control-Allow-Origin: http://localhost:4200");
 header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json; charset=UTF-8");
 
-// Gérer la requête de pré-vérification (Preflight) des navigateurs
+// Gestion du Preflight (requête OPTIONS automatique du navigateur)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
-require_once __DIR__ . '/../includes/db.php';
-require_once __DIR__ . '/../includes/favoris_functions.php';
+// 2. INCLUSIONS ET INITIALISATION
+require_once __DIR__ . '/../includes/db.php'; // Fournit la variable $pdo
+// require_once __DIR__ . '/../includes/fonctions.php'; 
 
-function ensureVentesSchema(PDO $pdo): void {
-    try {
-        $columnCheck = $pdo->prepare(
-            "SELECT COUNT(*)
-             FROM information_schema.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = 'ventes'
-               AND COLUMN_NAME = 'acheteur_id'"
-        );
-        $columnCheck->execute();
-
-        if ((int) $columnCheck->fetchColumn() === 0) {
-            $pdo->exec("ALTER TABLE ventes ADD COLUMN acheteur_id char(36) DEFAULT NULL AFTER vendeur_id");
-        }
-    } catch (Throwable $e) {
-        error_log('ensureVentesSchema failed: ' . $e->getMessage());
-    }
-}
-
-ensureVentesSchema($pdo);
-
+// 3. RÉCUPÉRATION DES DONNÉES ENTRANTES (JSON OU QUERY)
+$method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
 
+// Récupérer le corps de la requête (Body) envoyé par Angular (JSON décodé en tableau PHP)
+$inputData = json_decode(file_get_contents('php://input'), true) ?? [];
+
+
 // ==========================================
-// MÉTHODE POST : TRAITEMENT DES ACTIONS
+// ROUTAGE DE L'API SELON LE VERBE HTTP
 // ==========================================
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    switch ($action) {
-        case 'favoris_ajax':
-            if (!isset($_SESSION['user_id'])) {
-                http_response_code(401);
-                echo json_encode(['error' => 'Unauthorized']);
-                exit();
-            }
 
-            $articleId = (int) ($_POST['article_id'] ?? 0);
-            $favorisAction = $_POST['action'] ?? '';
+switch ($method) {
 
-            if (!$articleId) {
-                http_response_code(400);
-                echo json_encode(['error' => 'Invalid article_id']);
-                exit();
-            }
+    // ------------------------------------------
+    //  MÉTHODE GET : Récupération de données (CRUD: Read)
+    // ------------------------------------------
+    case 'GET':
+        switch ($action) {
+            case 'catalogue':
+                // require_once __DIR__ . '/../includes/catalogue/catalogue.php';
+                $response = [
+                    'articles'   => $results ?? [],
+                    'categories' => $categories ?? []
+                ];
+                http_response_code(200);
+                echo json_encode($response);
+                break;
 
-            switch ($favorisAction) {
-                case 'add':
-                    addFavoris($pdo, $_SESSION['user_id'], $articleId);
-                    echo json_encode(['success' => true, 'message' => 'Article ajouté aux favoris']);
-                    break;
-                case 'remove':
-                    removeFavoris($pdo, $_SESSION['user_id'], $articleId);
-                    echo json_encode(['success' => true, 'message' => 'Article retiré des favoris']);
-                    break;
-                case 'check':
-                    $isFavoris = isFavoris($pdo, $_SESSION['user_id'], $articleId);
-                    echo json_encode(['is_favoris' => $isFavoris]);
-                    break;
-                default:
-                    http_response_code(400);
-                    echo json_encode(['error' => 'Invalid action']);
-            }
-            exit();
-        
-        case 'connexion':
-            require_once __DIR__ . '/../includes/connexion/connexion.php';
-            // À modifier plus tard pour renvoyer du JSON
-            break;
+            case 'item':
+                $id = (int)($_GET['id'] ?? 0);
+                // Logique pour récupérer UN article précis...
+                http_response_code(200);
+                echo json_encode(['item' => []]);
+                break;
 
-        case 'delete_item':
-            require_once __DIR__ . '/../includes/delete_item/delete_item.php';
-            echo json_encode(['success' => true, 'message' => 'Article supprimé']);
-            exit();
+            case 'profile':
+                if (!isset($_SESSION['user_id'])) {
+                    http_response_code(401);
+                    echo json_encode(['error' => 'Non autorisé']);
+                    exit();
+                }
+                // Logique profil...
+                break;
 
-        case 'delete_user':
-            require_once __DIR__ . '/../includes/delete_user/delete_user.php';
-            echo json_encode(['success' => true, 'message' => 'Utilisateur supprimé']);
-            exit();
+            default:
+                http_response_code(404);
+                echo json_encode(['error' => 'Endpoint GET introuvable']);
+        }
+        break;
 
-        case 'inscription':
-            require_once __DIR__ . '/../includes/inscription/inscription.php';
-            break;
+    // ------------------------------------------
+    //  MÉTHODE POST : Création de ressources / Actions spécifiques (CRUD: Create)
+    // ------------------------------------------
+    case 'POST':
+        switch ($action) {
+            case 'connexion':
+                // Utiliser $inputData['email'] et $inputData['password'] envoyés par Angular
+                // Logique de vérification...
+                $_SESSION['user_id'] = $user['id']; // Exemple
+                http_response_code(200);
+                echo json_encode(['success' => true, 'message' => 'Connexion réussie']);
+                break;
 
-        case 'post':  
-            require_once __DIR__ . '/../includes/post/post.php';
-            echo json_encode(['success' => true, 'article_id' => $nouvelArticleId]);
-            exit();
+            case 'inscription':
+                http_response_code(201); // 201 = Created
+                echo json_encode(['success' => true, 'message' => 'Utilisateur créé']);
+                break;
 
-        case 'edit_profile':
-            require_once __DIR__ . '/../includes/edit_profile/edit_profile.php';
-            echo json_encode(['success' => true, 'user_id' => $user_id]);
-            exit();
+            case 'post_item':
+                // Ajouter un article (Données dans $inputData)
+                http_response_code(201);
+                echo json_encode(['success' => true, 'article_id' => 123]);
+                break;
 
-        case 'paiement':
-            require_once __DIR__ . '/../includes/paiement/paiement.php';
-            echo json_encode(['success' => true, 'message' => 'Paiement traité']);
-            exit();
+            case 'favoris':
+                // Ajouter aux favoris
+                http_theme_code(200);
+                echo json_encode(['success' => true, 'message' => 'Ajouté aux favoris']);
+                break;
 
-        case 'edit_item':
-            require_once __DIR__ . '/../includes/edit_item/edit_item.php';
-            echo json_encode(['success' => true, 'article_id' => $_POST['article_id']]);
-            exit();
+            default:
+                http_response_code(404);
+                echo json_encode(['error' => 'Endpoint POST introuvable']);
+        }
+        break;
 
-        case 'avis':
-            require_once __DIR__ . '/../includes/avis.php';
-            break;
+    // ------------------------------------------
+    //  MÉTHODE PUT : Modification de ressources (CRUD: Update)
+    // ------------------------------------------
+    case 'PUT':
+        switch ($action) {
+            case 'edit_profile':
+                // Les modifications Angular seront dans $inputData
+                http_response_code(200);
+                echo json_encode(['success' => true, 'message' => 'Profil mis à jour']);
+                break;
 
-        case 'messages':
-            require_once __DIR__ . '/../includes/messages/messages.php';
-            break;
+            case 'edit_item':
+                http_response_code(200);
+                echo json_encode(['success' => true, 'message' => 'Article modifié']);
+                break;
 
-        case 'valider_reception':
-            if (isset($_POST['vente_id'])) {
-                $venteId = $_POST['vente_id'];
-                $stmt = $pdo->prepare("UPDATE ventes SET statut = 'recu' WHERE id = ? AND acheteur_id = ?");
-                $stmt->execute([$venteId, $_SESSION['user_id']]);
-                
-                $check = $pdo->prepare("SELECT vendeur_id, article_id FROM ventes WHERE id = ?");
-                $check->execute([$venteId]);
-                $info = $check->fetch();
-                
-                echo json_encode([
-                    'success' => true, 
-                    'vendeur_id' => $info['vendeur_id'], 
-                    'article_id' => $info['article_id']
-                ]);
-                exit();
-            }
-            break;
-    }
+            case 'valider_reception':
+                http_response_code(200);
+                echo json_encode(['success' => true, 'statut' => 'recu']);
+                break;
+
+            default:
+                http_response_code(404);
+                echo json_encode(['error' => 'Endpoint PUT introuvable']);
+        }
+        break;
+
+    // ------------------------------------------
+    //  MÉTHODE DELETE : Suppression de ressources (CRUD: Delete)
+    // ------------------------------------------
+    case 'DELETE':
+        switch ($action) {
+            case 'delete_item':
+                $id = (int)($_GET['id'] ?? 0); // On passe souvent l'ID dans l'URL en DELETE
+                http_response_code(200);
+                echo json_encode(['success' => true, 'message' => 'Article supprimé']);
+                break;
+
+            case 'delete_user':
+                http_response_code(200);
+                echo json_encode(['success' => true, 'message' => 'Compte supprimé']);
+                break;
+
+            case 'favoris':
+                // Retirer des favoris
+                http_response_code(200);
+                echo json_encode(['success' => true, 'message' => 'Retiré des favoris']);
+                break;
+
+            default:
+                http_response_code(404);
+                echo json_encode(['error' => 'Endpoint DELETE introuvable']);
+        }
+        break;
+
+    // ------------------------------------------
+    //  VERBE NON GÉRÉ
+    // ------------------------------------------
+    default:
+        http_response_code(405); // 405 = Method Not Allowed
+        echo json_encode(['error' => 'Méthode HTTP non supportée']);
+        break;
 }
 
-// ==========================================
-// MÉTHODE GET : RÉCUPÉRATION DES DONNÉES
-// ==========================================
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    switch ($action) {
-
-        // ICI TEST POUR L'API CATALOGUE
-        case 'catalogue':
-            // 1. On charge la logique (qui définit $results et $categories)
-            require_once __DIR__ . '/../includes/catalogue/catalogue.php';
-            
-            // 2. On package le tout proprement dans un tableau associatif
-            $response = [
-                'articles'   => $results ?? [],
-                'categories' => $categories ?? []
-            ];
-
-            // 3. On l'envoie à Angular
-            http_response_code(200); // Statut HTTP OK
-            echo json_encode($response);
-            exit(); // On coupe pour ne rien charger d'autre
-        
-        case 'item':
-            require_once __DIR__ . '/../includes/item/item.php';
-            // À nettoyer ensuite : echo json_encode($product);
-            break;
-
-        case 'user':
-            require_once __DIR__ . '/../includes/user/user.php';
-            break;
-
-        case 'messages':
-            if (!isset($_SESSION['user_id'])) {
-                http_response_code(401);
-                echo json_encode(['error' => 'Unauthorized']);
-                exit();
-            }
-            // À nettoyer ensuite
-            break;
-            
-        default:
-            http_response_code(404);
-            echo json_encode(['error' => 'Endpoint not found']);
-            exit();
-    }
-}
+exit(); // Sécurité pour empêcher tout affichage parasite

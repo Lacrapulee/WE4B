@@ -1,7 +1,7 @@
 <?php
-include '../includes/db.php';
-require_once '../includes/articles_functions.php';
-require_once '../includes/favoris_functions.php';
+include_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../articles_functions.php';
+require_once __DIR__ . '/../favoris_functions.php';
 
 // On récupère tous les filtres depuis l'URL (GET)
 $filters = [
@@ -11,7 +11,8 @@ $filters = [
     'prix_min'  => $_GET['prix_min'] ?? '',
     'prix_max'  => $_GET['prix_max'] ?? '',
     'distance'  => $_GET['distance'] ?? '',
-    'tri'       => $_GET['tri'] ?? 'date_recent'
+    'tri'       => $_GET['tri'] ?? 'date_recent',
+    'index'     => $_GET['index'] ?? 0
 ];
 
 $results = getAnnonceRechercheAvancee($pdo, $filters);

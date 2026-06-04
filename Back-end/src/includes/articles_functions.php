@@ -115,7 +115,7 @@ function getAnnonceRechercheAvancee($pdo, $filters = []) {
     
     // Gestion de la distance (filtrage et/ou tri)
     if ((!empty($filters['distance']) || $tri === 'distance') && !empty($filters['ville'])) {
-        require_once '../includes/tools.php';
+        require_once __DIR__ . '/tools.php';
         
         // Récupérer les coordonnées de la ville de recherche
         $villeCoords = getCoordinatesFromVille($filters['ville']);

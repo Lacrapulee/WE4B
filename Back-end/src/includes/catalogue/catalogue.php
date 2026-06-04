@@ -1,7 +1,7 @@
 <?php
-include '../includes/db.php';
-require_once '../includes/articles_functions.php';
-require_once '../includes/favoris_functions.php';
+include_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../articles_functions.php';
+require_once __DIR__ . '/../favoris_functions.php';
 
 // On récupère tous les filtres depuis l'URL (GET)
 $filters = [

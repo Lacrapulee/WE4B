@@ -11,7 +11,7 @@
 
 <header class="main-header">
     <div class="logo">
-        <a href="/">
+        <a href="/index.php">
             <img src="/assets/img/logo.png" alt="Accueil">
         </a>
     </div>

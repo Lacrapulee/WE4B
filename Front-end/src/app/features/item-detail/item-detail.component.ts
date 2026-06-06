@@ -1,8 +1,7 @@
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CatalogueApiService } from '../../core/api/catalogue-api.service';
-import { CatalogueItem } from '../../core/models/catalogue.models';
 
 @Component({
   selector: 'app-item-detail',
@@ -10,14 +9,63 @@ import { CatalogueItem } from '../../core/models/catalogue.models';
   imports: [CommonModule, RouterLink],
   templateUrl: './item-detail.component.html'
 })
-export class ItemDetailComponent {
-  item: CatalogueItem | null = null;
+export class ItemDetailComponent implements OnInit {
+  itemData: any = null;
+  item: any = null;
+  images: string[] = [];
+  similarAds: any[] = [];
+  vendeur: any = null;
+  loading: boolean = true;
 
-  constructor(route: ActivatedRoute, private api: CatalogueApiService) {
-    const itemId = Number(route.snapshot.paramMap.get('id'));
-    this.api.getItem(itemId).subscribe({
-      next: (data) => this.item = data,
-      error: () => this.item = null
+  constructor(private route: ActivatedRoute, private api: CatalogueApiService) {}
+
+  ngOnInit() {
+    this.route.paramMap.subscribe(params => {
+      const itemId = Number(params.get('id'));
+      if (itemId) {
+        this.loadItem(itemId);
+      }
+    });
+  }
+
+  loadItem(id: number) {
+    this.loading = true;
+    this.item = null;
+    this.vendeur = null;
+    
+    this.api.getItem(id).subscribe({
+      next: (data) => {
+        this.itemData = data;
+        this.item = data.item;
+        this.images = data.images || ['default.png'];
+        this.similarAds = data.similarAds || [];
+        
+        // Load seller info if we have a vendeur_id
+        if (this.item && this.item.vendeur_id) {
+          // Fallback en attendant la requête, ou si elle échoue
+          if (this.item.vendeur_prenom || this.item.vendeur_nom) {
+             this.vendeur = {
+               nom: this.item.vendeur_nom || '',
+               prenom: this.item.vendeur_prenom || ''
+             };
+          }
+
+          this.api.getUser(this.item.vendeur_id).subscribe({
+            next: (userData) => {
+              if (userData && userData.user) {
+                this.vendeur = userData.user;
+              }
+            },
+            error: (err) => console.error("Erreur chargement vendeur", err)
+          });
+        }
+        
+        this.loading = false;
+      },
+      error: () => {
+        this.item = null;
+        this.loading = false;
+      }
     });
   }
 }

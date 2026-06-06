@@ -1,0 +1,36 @@
+<div class="container mx-auto p-4 max-w-6xl">
+  <h1 class="text-2xl font-bold mb-6">Mes Commandes Passées</h1>
+
+  <div *ngIf="loading" class="text-center py-10 text-gray-500">
+    Chargement de vos commandes...
+  </div>
+
+  <div *ngIf="!loading && commandes.length === 0" class="bg-gray-50 p-10 text-center rounded-lg shadow-sm border">
+    <p class="text-gray-500 text-lg mb-4">Vous n'avez passé aucune commande pour le moment.</p>
+    <a routerLink="/catalogue" class="text-blue-600 hover:underline">Continuer mes achats</a>
+  </div>
+
+  <div *ngIf="!loading && commandes.length > 0" class="flex flex-col gap-6">
+    <div *ngFor="let cmd of commandes" class="bg-white border rounded-lg shadow-sm p-4 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <img [src]="'/assets/img/' + (cmd.article?.image || 'default.png')" alt="Article" class="w-20 h-20 object-cover rounded-md">
+        <div>
+          <h3 class="font-bold text-lg">Commande #{{ cmd.id }}</h3>
+          <p class="text-gray-600">{{ cmd.article?.titre || 'Article inconnu' }}</p>
+          <p class="text-sm text-gray-500">Acheté le {{ cmd.date_achat | date:'short' }}</p>
+        </div>
+      </div>
+      <div class="text-right flex flex-col justify-center items-end">
+        <span class="text-xl font-bold">{{ cmd.prix_total | number:'1.2-2' }} €</span>
+        <span class="inline-block mt-2 px-3 py-1 text-sm rounded-full" 
+              [ngClass]="{
+                'bg-green-100 text-green-800': cmd.statut === 'recu',
+                'bg-yellow-100 text-yellow-800': cmd.statut === 'en_cours',
+                'bg-gray-100 text-gray-800': cmd.statut === 'annule'
+              }">
+          {{ cmd.statut | uppercase }}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

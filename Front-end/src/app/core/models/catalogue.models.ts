@@ -6,6 +6,8 @@ export type CatalogueCategory = {
 export type CatalogueItem = {
   id: number;
   vendeur_id: string;
+  vendeur_nom?: string;
+  vendeur_prenom?: string;
   categorie_id: number;
   titre: string;
   description: string;

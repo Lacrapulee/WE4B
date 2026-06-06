@@ -2,23 +2,43 @@
 require_once __DIR__ . '/../db.php';
 
 $profile_id = $_GET['id'] ?? null;
-if (!$profile_id) { die("Utilisateur non trouvé."); }
 
-//Chercher les infos du compte
+if (!$profile_id) {
+    echo "Erreur : Pas d'ID spécifié.";
+    exit();
+}
+
+// 1. Infos utilisateur
 $stmt = $pdo->prepare("SELECT id, nom, prenom, telephone, email, created_at, adresse_postale FROM users WHERE id = ?");
 $stmt->execute([$profile_id]);
 $user = $stmt->fetch();
 
-if (!$user) { die("Ce profil n'existe pas."); }
+if (!$user) {
+    echo "Erreur : Utilisateur introuvable.";
+    exit();
+}
 
-// Vérifier si c'est le propriétaire ou admin qui regarde
-$is_owner = (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $profile_id);
-$isAdmin = (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1);
+// 2. Droits
+$is_owner = false;
+if (isset($_SESSION['user_id'])) {
+    $is_owner = ($_SESSION['user_id'] == $profile_id);
+}
+$isAdmin = false;
+if (isset($_SESSION['is_admin'])) {
+    $isAdmin = ($_SESSION['is_admin'] == 1);
+}
 
-$stmt = $pdo->prepare("SELECT * FROM articles WHERE vendeur_id = ? ORDER BY created_at DESC");
+// 3. Récupération des articles (Sans la colonne géométrique brute qui fait planter)
+$stmt = $pdo->prepare("
+    SELECT id, vendeur_id, categorie_id, titre, description, prix, statut, ville_nom, code_postal, created_at 
+    FROM articles 
+    WHERE vendeur_id = ? 
+    ORDER BY created_at DESC
+");
 $stmt->execute([$profile_id]);
 $articles = $stmt->fetchAll();
 
+// Récupération des images pour chaque article
 foreach ($articles as &$article) {
     $stmt = $pdo->prepare("SELECT url_image FROM article_images WHERE article_id = ? AND est_principale = 1 LIMIT 1");
     $stmt->execute([$article['id']]);
@@ -26,6 +46,7 @@ foreach ($articles as &$article) {
     $article['image'] = $image ? $image['url_image'] : 'default.png';
 }
 
+// 4. Récupération des avis
 $stmt = $pdo->prepare("
     SELECT 
         a.note, 
@@ -43,7 +64,7 @@ $stmt = $pdo->prepare("
 $stmt->execute([$profile_id]);
 $reviews = $stmt->fetchAll();
 
-// Variables pour la vue
+// 5. Variables pour la vue
 $nom = $user['nom'];
 $prenom = $user['prenom'];
 $telephone = $user['telephone'];

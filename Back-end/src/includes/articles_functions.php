@@ -58,9 +58,10 @@ function getImagesByAnnonceIds($pdo, $articleIds) {
  * Recherche avancée d'annonces avec support du filtre de distance et tri par distance
  */
 function getAnnonceRechercheAvancee($pdo, $filters = []) {
-    $sql = "SELECT a.*, ST_AsText(a.coordonnees) as coordonnees, c.nom as categorie_nom 
+    $sql = "SELECT a.*, ST_AsText(a.coordonnees) as coordonnees, c.nom as categorie_nom, u.nom as vendeur_nom, u.prenom as vendeur_prenom 
             FROM articles a
             LEFT JOIN categories c ON a.categorie_id = c.id
+            LEFT JOIN users u ON a.vendeur_id = u.id
             WHERE a.statut = 'en_ligne'";
     
     $params = [];

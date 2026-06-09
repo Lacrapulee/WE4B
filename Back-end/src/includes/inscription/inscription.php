@@ -29,18 +29,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             if ($stmt->fetch()) {
                 $response['message'] = "Cet email est déjà utilisé par un autre compte.";
             } else {
-                $id = bin2hex(random_bytes(16));
                 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
                 $stmt = $pdo->prepare("
                     INSERT INTO users 
-                    (id, email, password, nom, prenom, telephone, date_naissance, adresse_postale)
+                    (email, password, nom, prenom, telephone, date_naissance, adresse_postale)
                     VALUES 
-                    (:id, :email, :password, :nom, :prenom, :telephone, :date_naissance, :adresse)
+                    (:email, :password, :nom, :prenom, :telephone, :date_naissance, :adresse)
                 ");
 
                 $stmt->execute([
-                    'id' => $id,
                     'email' => $email,
                     'password' => $hashedPassword,
                     'nom' => $nom,
@@ -49,6 +47,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     'date_naissance' => $date_naissance ?: null,
                     'adresse' => $adresse
                 ]);
+                
+                $id = $pdo->lastInsertId();
 
                 $_SESSION['user_id'] = $id;
                 $_SESSION['email'] = $email;

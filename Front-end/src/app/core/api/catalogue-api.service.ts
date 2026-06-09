@@ -52,4 +52,8 @@ export class CatalogueApiService {
     // Mocking for now
     return of([]);
   }
+
+  postItem(formData: FormData): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/post_item`, formData, { withCredentials: true });
+  }
 }

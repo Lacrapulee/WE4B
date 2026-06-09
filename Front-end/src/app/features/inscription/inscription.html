@@ -1,0 +1,54 @@
+<main class="auth-container">
+    <div class="auth-card">
+        <h1 class="auth-title">Créer un compte</h1>
+
+        <form (ngSubmit)="onSubmit()" class="auth-form" #inscriptionForm="ngForm">
+            <div *ngIf="message" [ngStyle]="{'background-color': isSuccess ? '#dcfce7' : '#fee2e2', 'color': isSuccess ? '#166534' : '#991b1b'}" style="padding: 10px; margin-bottom: 15px; border-radius: 8px; text-align: center; font-weight: 600;">
+                {{ message }}
+            </div>
+
+            <div class="form-group">
+                <input type="email" name="email" [(ngModel)]="formData.email" placeholder="Email" required>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <input type="password" name="password" [(ngModel)]="formData.password" placeholder="Mot de passe" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" name="confirm_password" [(ngModel)]="formData.confirm_password" placeholder="Confirmer" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <input type="text" name="prenom" [(ngModel)]="formData.prenom" placeholder="Prénom">
+                </div>
+                <div class="form-group">
+                    <input type="text" name="nom" [(ngModel)]="formData.nom" placeholder="Nom">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <input type="text" name="telephone" [(ngModel)]="formData.telephone" placeholder="Téléphone">
+                </div>
+                <div class="form-group">
+                    <input type="date" name="date_naissance" [(ngModel)]="formData.date_naissance">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <textarea name="adresse_postale" [(ngModel)]="formData.adresse_postale" placeholder="Adresse complète"></textarea>
+            </div>
+
+            <button type="submit" class="btn-auth" [disabled]="isLoading">
+                {{ isLoading ? 'Vérification...' : "S'inscrire" }}
+            </button>
+
+            <div style="margin-top: 1.5rem; text-align: center;">
+                <p class="form-help">Déjà membre ? <a routerLink="/login" style="color: #005F83; text-decoration: none; font-weight: 600;">Connecte-toi</a></p>
+            </div>
+        </form>
+    </div>
+</main>

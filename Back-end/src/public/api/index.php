@@ -153,7 +153,7 @@ switch ($method) {
                 // Logique de vérification...
                 $_POST['email'] = $inputData['email']; 
                 $_POST['password'] = $inputData['password'];
-                include __DIR__ . '/../../includes/connection/connection.php'; // Ce fichier doit vérifier les identifiants et créer $_SESSION['user_id'] si c'est bon
+                include __DIR__ . '/../../includes/connexion/connexion.php'; // Ce fichier doit vérifier les identifiants et créer $_SESSION['user_id'] si c'est bon
                 http_response_code(200);
                 echo json_encode(['success' => empty($erreurs), 'message' => $erreurs ?? 'Connexion réussie', 'user_id' => $_SESSION['user_id']]);
                 break;
@@ -175,10 +175,18 @@ switch ($method) {
                 break;
 
             case 'post_item':
-                // Ajouter un article (Données dans $inputData)
+                // Les requêtes avec des fichiers arrivent via FormData (donc $_POST et $_FILES), pas via php://input
+                $_POST['vendeur_id'] = $_SESSION['user_id'] ?? null; 
+                
                 include __DIR__ . '/../../includes/post/post.php'; // Ce fichier doit créer l'article et gérer les images
-                http_response_code(201);
-                echo json_encode(['success' => empty($erreurs), 'errors' => $erreurs ?? [], 'article_id' => nouvelArticleId ?? null]);
+                
+                if (empty($erreurs) && !empty($nouvelArticleId)) {
+                    http_response_code(201);
+                    echo json_encode(['success' => true, 'article_id' => $nouvelArticleId, 'message' => 'Article publié avec succès']);
+                } else {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'errors' => $erreurs]);
+                }
                 break;
 
             case 'favoris':

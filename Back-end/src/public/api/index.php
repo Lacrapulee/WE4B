@@ -126,6 +126,16 @@ switch ($method) {
                 http_response_code(200);
                 echo json_encode($response);
                 break;
+            case 'favoris':
+                require_once __DIR__ . '/../../includes/favoris/favoris.php';
+                
+                $response = [
+                    'favoris' => $favoris ?? [],
+                    'images'  => $images ?? []
+                ];
+                http_response_code(200);
+                echo json_encode($response);
+                break;
                 
             default:
                 http_response_code(404);
@@ -166,24 +176,18 @@ switch ($method) {
 
             case 'post_item':
                 // Ajouter un article (Données dans $inputData)
-                $_POST['titre'] = $inputData['titre'] ?? '';
-                $_POST['description'] = $inputData['description'] ?? '';
-                $_POST['prix'] = $inputData['prix'] ?? 0;
-                $_POST['categorie_id'] = $inputData['categorie_id'] ?? 1;
-                $_POST['addresse'] = $inputData['addresse'] ?? '';
-                $_POST['ville_nom'] = $inputData['ville_nom'] ?? '';
-                $_POST['code_postal'] = $inputData['code_postal'] ?? '';
-                
-                $_POST['vendeur_id'] = $inputData['user_id']; // L'ID de l'utilisateur connecté
                 include __DIR__ . '/../../includes/post/post.php'; // Ce fichier doit créer l'article et gérer les images
                 http_response_code(201);
-                echo json_encode(['success' => empty($erreurs), 'errors' => $erreurs ?? [], 'article_id' => 123]);
+                echo json_encode(['success' => empty($erreurs), 'errors' => $erreurs ?? [], 'article_id' => nouvelArticleId ?? null]);
                 break;
 
             case 'favoris':
                 // Ajouter aux favoris
+                $_POST['article_id'] = $inputData['article_id'];
+                $_POST['user_id'] = $inputData['user_id'];
+                include __DIR__ . '/../../includes/add_Favoris/add_Favoris.php'; // Ce fichier doit ajouter l'article aux favoris de l'utilisateur
+                echo json_encode(['success' => empty($erreurs), 'errors' => $erreurs ?? [], 'message' => $response['message'] ?? '']);
                 http_response_code(200);
-                echo json_encode(['success' => true, 'message' => 'Ajouté aux favoris']);
                 break;
 
             default:

@@ -141,25 +141,48 @@ switch ($method) {
             case 'connexion':
                 // Utiliser $inputData['email'] et $inputData['password'] envoyés par Angular
                 // Logique de vérification...
-                $_SESSION['user_id'] = $user['id']; // Exemple
+                $_POST['email'] = $inputData['email']; 
+                $_POST['password'] = $inputData['password'];
+                include __DIR__ . '/../../includes/connection/connection.php'; // Ce fichier doit vérifier les identifiants et créer $_SESSION['user_id'] si c'est bon
                 http_response_code(200);
-                echo json_encode(['success' => true, 'message' => 'Connexion réussie']);
+                echo json_encode(['success' => empty($erreurs), 'message' => $erreurs ?? 'Connexion réussie', 'user_id' => $_SESSION['user_id']]);
                 break;
 
             case 'inscription':
+                // Utiliser $inputData['email'], $inputData['password'], etc. envoyés par Angular
+                // Logique de création de compte...
+                $_POST['email'] = $inputData['email'];
+                $_POST['password'] = $inputData['password'];
+                $_POST['nom'] = $inputData['nom'] ?? '';
+                $_POST['prenom'] = $inputData['prenom'] ?? '';
+                $_POST['confirm_password'] = $inputData['confirm_password'] ?? '';
+                $_POST['telephone'] = $inputData['telephone'] ?? null;
+                $_POST['date_naissance'] = $inputData['date_naissance'] ?? null;
+                $_POST['adresse_postale'] = $inputData['adresse_postale'] ?? null;
+                include __DIR__ . '/../../includes/inscription/inscription.php'; // Ce fichier doit créer le compte et éventuellement connecter l'utilisateur
                 http_response_code(201); // 201 = Created
-                echo json_encode(['success' => true, 'message' => 'Utilisateur créé']);
+                echo json_encode(['success' => empty($erreurs), 'message' => $erreurs ?? 'Utilisateur créé']);
                 break;
 
             case 'post_item':
                 // Ajouter un article (Données dans $inputData)
+                $_POST['titre'] = $inputData['titre'] ?? '';
+                $_POST['description'] = $inputData['description'] ?? '';
+                $_POST['prix'] = $inputData['prix'] ?? 0;
+                $_POST['categorie_id'] = $inputData['categorie_id'] ?? 1;
+                $_POST['addresse'] = $inputData['addresse'] ?? '';
+                $_POST['ville_nom'] = $inputData['ville_nom'] ?? '';
+                $_POST['code_postal'] = $inputData['code_postal'] ?? '';
+                
+                $_POST['vendeur_id'] = $inputData['user_id']; // L'ID de l'utilisateur connecté
+                include __DIR__ . '/../../includes/post/post.php'; // Ce fichier doit créer l'article et gérer les images
                 http_response_code(201);
-                echo json_encode(['success' => true, 'article_id' => 123]);
+                echo json_encode(['success' => empty($erreurs), 'errors' => $erreurs ?? [], 'article_id' => 123]);
                 break;
 
             case 'favoris':
                 // Ajouter aux favoris
-                http_theme_code(200);
+                http_response_code(200);
                 echo json_encode(['success' => true, 'message' => 'Ajouté aux favoris']);
                 break;
 

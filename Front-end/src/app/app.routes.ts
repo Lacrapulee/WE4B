@@ -9,11 +9,13 @@ import { FavorisComponent } from './features/favoris/favoris';
 import { CommandesComponent } from './features/commandes/commandes';
 import { Connexion } from './features/connexion/connexion';
 import { Inscription } from './features/inscription/inscription';
+import { EditItemComponent } from './features/edit-item/edit-item.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'catalogue' },
   { path: 'catalogue', component: CatalogueComponent },
   { path: 'item/:id', component: ItemDetailComponent },
+  { path: 'edit-item/:id', component: EditItemComponent, data: { title: 'Modifier mon annonce' } },
   { path: 'vendre', component: PostComponent, data: { title: 'Vendre', description: 'Publiez une nouvelle annonce depuis Angular.' } },
   { path: 'favoris', component: FavorisComponent, data: { title: 'Favoris', description: 'Retrouvez ici les annonces enregistrées.' } },
   { path: 'mes-commandes', component: CommandesComponent, data: { title: 'Mes commandes', description: 'Suivi des commandes passées.' } },

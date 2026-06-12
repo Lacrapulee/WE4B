@@ -10,7 +10,7 @@
       <div class="space-y-6">
         <div class="rounded-2xl overflow-hidden shadow-sm border bg-white">
           <img class="w-full object-cover aspect-[4/3]" 
-               [src]="'/assets/img/' + (images[0] || 'default.png')" 
+               [src]="backendUrl + '/assets/img/' + (images[0] || 'default.png')" 
                [alt]="item.titre" />
         </div>
         
@@ -33,12 +33,20 @@
           <p class="mt-4 text-4xl font-bold text-blue-600">{{ item.prix | number:'1.2-2':'fr-FR' }} €</p>
           
           <div class="mt-8 flex flex-col gap-3">
-            <button class="w-full rounded-full bg-blue-600 py-3.5 text-white font-bold text-lg hover:bg-blue-700 transition-colors shadow-sm">
-              Acheter cet article
-            </button>
-            <button class="w-full rounded-full bg-white border-2 border-gray-200 py-3.5 text-gray-800 font-bold text-lg hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-sm">
-              Contacter le vendeur
-            </button>
+            <ng-container *ngIf="!isOwner">
+              <button class="w-full rounded-full bg-blue-600 py-3.5 text-white font-bold text-lg hover:bg-blue-700 transition-colors shadow-sm">
+                Acheter cet article
+              </button>
+              <button class="w-full rounded-full bg-white border-2 border-gray-200 py-3.5 text-gray-800 font-bold text-lg hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-sm">
+                Contacter le vendeur
+              </button>
+            </ng-container>
+
+            <ng-container *ngIf="isOwner">
+              <a [routerLink]="['/edit-item', item.id]" class="w-full text-center rounded-full bg-orange-500 py-3.5 text-white font-bold text-lg hover:bg-orange-600 transition-colors shadow-sm inline-block cursor-pointer">
+                Modifier mon annonce
+              </a>
+            </ng-container>
           </div>
         </div>
 
@@ -65,7 +73,7 @@
       <h2 class="text-2xl font-bold mb-6 text-gray-900">Ces annonces pourraient vous intéresser</h2>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         <a *ngFor="let ad of similarAds" [routerLink]="['/item', ad.id]" class="group block bg-white rounded-xl shadow-sm border hover:shadow-lg transition-all duration-300 overflow-hidden">
-          <img [src]="'/assets/img/' + (ad.image || 'default.png')" [alt]="ad.titre" class="w-full h-40 md:h-48 object-cover group-hover:scale-105 transition-transform duration-500">
+          <img [src]="backendUrl + '/assets/img/' + (ad.image || 'default.png')" [alt]="ad.titre" class="w-full h-40 md:h-48 object-cover group-hover:scale-105 transition-transform duration-500">
           <div class="p-4">
             <h3 class="font-semibold text-sm md:text-base text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors">{{ ad.titre }}</h3>
             <p class="font-bold text-blue-600 mt-2 text-lg">{{ ad.prix | number:'1.2-2':'fr-FR' }} €</p>

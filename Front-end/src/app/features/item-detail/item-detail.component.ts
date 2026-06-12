@@ -16,6 +16,8 @@ export class ItemDetailComponent implements OnInit {
   similarAds: any[] = [];
   vendeur: any = null;
   loading: boolean = true;
+  isOwner: boolean = false;
+  readonly backendUrl = 'http://localhost:8000';
 
   constructor(private route: ActivatedRoute, private api: CatalogueApiService) {}
 
@@ -32,6 +34,7 @@ export class ItemDetailComponent implements OnInit {
     this.loading = true;
     this.item = null;
     this.vendeur = null;
+    this.isOwner = false;
     
     this.api.getItem(id).subscribe({
       next: (data) => {
@@ -39,6 +42,7 @@ export class ItemDetailComponent implements OnInit {
         this.item = data.item;
         this.images = data.images || ['default.png'];
         this.similarAds = data.similarAds || [];
+        this.isOwner = !!data.isOwner;
         
         // Load seller info if we have a vendeur_id
         if (this.item && this.item.vendeur_id) {

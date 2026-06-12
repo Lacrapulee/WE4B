@@ -11,7 +11,7 @@ export class CatalogueApiService {
   constructor(private http: HttpClient) {}
 
   getCategories() {
-    return this.http.get<{categories: CatalogueCategory[]}>(`${this.baseUrl}/catalogue`) // Update endpoint correctly based on backend
+    return this.http.get<{categories: CatalogueCategory[]}>(`${this.baseUrl}/catalogue`, { withCredentials: true }) // Update endpoint correctly based on backend
       .pipe(map(response => response.categories || []));
   }
 
@@ -22,20 +22,20 @@ export class CatalogueApiService {
         params = params.set(key, value);
       }
     }
-    return this.http.get<{articles: CatalogueItem[]}>(`${this.baseUrl}/catalogue`, { params })
+    return this.http.get<{articles: CatalogueItem[]}>(`${this.baseUrl}/catalogue`, { params, withCredentials: true })
       .pipe(map(response => response.articles || []));
   }
 
   getItem(id: number) {
-    return this.http.get<any>(`${this.baseUrl}/item/${id}`);
+    return this.http.get<any>(`${this.baseUrl}/item/${id}`, { withCredentials: true });
   }
 
   toggleFavoris(articleId: number) {
-    return this.http.post<{ success: boolean }>(`${this.baseUrl}/favoris/toggle`, { article_id: articleId, action: 'add' });
+    return this.http.post<{ success: boolean }>(`${this.baseUrl}/favoris/toggle`, { article_id: articleId, action: 'add' }, { withCredentials: true });
   }
 
   getUser(id: string) {
-    return this.http.get<any>(`${this.baseUrl}/user/${id}`);
+    return this.http.get<any>(`${this.baseUrl}/user/${id}`, { withCredentials: true });
   }
 
   getFavoris(): Observable<CatalogueItem[]> {
@@ -55,5 +55,9 @@ export class CatalogueApiService {
 
   postItem(formData: FormData): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/post_item`, formData, { withCredentials: true });
+  }
+
+  editItem(id: number, data: any): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/edit_item?id=${id}`, data, { withCredentials: true });
   }
 }

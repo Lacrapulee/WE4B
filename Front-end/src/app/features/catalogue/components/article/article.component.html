@@ -1,6 +1,6 @@
 <div class="group relative bg-white rounded-lg shadow hover:shadow-lg transition-shadow overflow-visible flex flex-col h-full">
   <a [routerLink]="['/item', item.id]" class="block flex-1" [attr.title]="item.titre">
-    <img [src]="'/assets/img/' + (item.image || 'default.png')" alt="Produit" class="product-thumb w-full h-48 object-cover rounded-t-lg">
+    <img [src]="'http://localhost:8000/assets/img/' + (item.image || 'default.png')" alt="Produit" class="product-thumb w-full h-48 object-cover rounded-t-lg">
     <div class="p-4 flex flex-col justify-between h-[calc(100%-12rem)]">
       <div>
         <h3 class="font-bold truncate text-gray-900">{{ item.titre }}</h3>

@@ -1,8 +1,33 @@
 FROM php:8.2-apache
 
-# 1. PDO MySQL extension
-RUN docker-php-ext-install pdo pdo_mysql
+# Installation de Composer
+COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 
+# AJOUT : Installation de Python3, pip et des dépendances système pour les graphiques
+RUN apt-get update && apt-get install -y \
+    libssl-dev \
+    libzip-dev \
+    unzip \
+    python3 \
+    python3-pip \
+    python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+# Installation des packages Python requis mondialement dans le conteneur
+# (Pymongo pour lire Mongo, Pandas pour trier, Matplotlib pour dessiner)
+RUN pip3 install --break-system-packages \
+    pymongo \
+    pandas \
+    matplotlib \
+    seaborn \
+    mysql-connector-python
+
+
+RUN docker-php-ext-install pdo pdo_mysql zip \
+    && pecl install mongodb \
+    && docker-php-ext-enable mongodb
+
+    
 # 2. Enable rewrite module
 RUN a2enmod rewrite
 

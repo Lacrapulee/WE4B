@@ -251,6 +251,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             require_once __DIR__ . '/../templates/messages/index.php';
             require_once __DIR__ . '/../templates/footer.php';
             break;
+        case 'dashboard':
+
+            $pythonScript = '/var/www/html/dashboard/generate_chart.py';
+
+            // La commande exécute Python et le '2>&1' permet de capturer les erreurs Python s'il y en a
+            $output = shell_exec("python3 $pythonScript 2>&1");
+
+            $dashboardError = null;
+
+            // On vérifie le message renvoyé par le script Python
+            if (trim($output) !== "Success") {
+                // Si Python a planté, on stocke l'erreur pour la pousser dans la template HTML
+                $dashboardError = "Impossible de générer les statistiques : " . $output;
+            }
+            require_once __DIR__ . '/../templates/header.php';
+            require_once __DIR__ . '/../templates/dashboard/index.php';
+            require_once __DIR__ . '/../templates/footer.php';
+            break;
+        default:
     }
 }
 

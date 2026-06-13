@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { CatalogueCategory, CatalogueFilters, CatalogueItem } from '../models/catalogue.models';
-import { map } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { of, Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -30,8 +30,12 @@ export class CatalogueApiService {
     return this.http.get<any>(`${this.baseUrl}/item/${id}`, { withCredentials: true });
   }
 
-  toggleFavoris(articleId: number) {
-    return this.http.post<{ success: boolean }>(`${this.baseUrl}/favoris/toggle`, { article_id: articleId, action: 'add' }, { withCredentials: true });
+  toggleFavoris(articleId: number, action: 'add' | 'remove', userId?: string) {
+    if (action === 'add') {
+      return this.http.post<{ success: boolean }>(`${this.baseUrl}/favoris`, { article_id: articleId, user_id: userId }, { withCredentials: true });
+    } else {
+      return this.http.request<{ success: boolean }>('delete', `${this.baseUrl}/favoris`, { body: { article_id: articleId, user_id: userId }, withCredentials: true });
+    }
   }
 
   getUser(id: string) {
@@ -39,9 +43,24 @@ export class CatalogueApiService {
   }
 
   getFavoris(): Observable<CatalogueItem[]> {
-    // Mocking for now as endpoint doesn't seem explicitly available in GET API
-    return of([]);
-  }
+  return this.http.get<any>(`${this.baseUrl}/favoris`, { withCredentials: true })
+    .pipe(
+      map(response => {
+        if (!response) return [];
+        const items = response.favoris ?? [];
+        const images = response.images ?? {};
+        return items.map((item: any) => ({
+          ...item,
+          image: images[item.id] ?? 'default.png',
+          isFavoris: true
+        }));
+      }),
+      catchError(err => {
+        console.error('getFavoris error:', err.status, err.error);
+        return of([]);
+      })
+    );
+}
 
   getCommandes(): Observable<any[]> {
     // Mocking for now
@@ -59,5 +78,9 @@ export class CatalogueApiService {
 
   editItem(id: number, data: any): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}/edit_item?id=${id}`, data, { withCredentials: true });
+  }
+
+  deleteItem(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/delete_item?id=${id}`, { withCredentials: true });
   }
 }

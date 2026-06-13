@@ -115,6 +115,23 @@ switch ($method) {
                 http_response_code(200);
                 echo json_encode($response);
                 break;
+
+            case 'check_auth':
+                if (isset($_SESSION['user_id'])) {
+                    http_response_code(200);
+                    echo json_encode(['isLoggedIn' => true, 'user_id' => $_SESSION['user_id']]);
+                } else {
+                    http_response_code(200);
+                    echo json_encode(['isLoggedIn' => false]);
+                }
+                break;
+
+            case 'logout':
+                session_unset();
+                session_destroy();
+                http_response_code(200);
+                echo json_encode(['success' => true, 'message' => 'Déconnecté']);
+                break;
                 
             default:
                 http_response_code(404);

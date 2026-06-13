@@ -31,7 +31,7 @@ export class FavorisComponent implements OnInit {
   }
 
   onToggleFavoris(item: any) {
-    this.api.toggleFavoris(item.id).subscribe({
+    this.api.toggleFavoris(item.id, 'remove').subscribe({
       next: (response) => {
         if (response.success) {
           // Remove from list or simply toggle

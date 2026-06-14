@@ -3,7 +3,7 @@
 include __DIR__ . '../includes/favoris_function.php';
 include_once __DIR__ . '/../db.php';
 
-$response = ['success' => false, 'message' => ''];
+$result = null;
 $error = null;
 
 if (isset($_POST['article_id']) && isset($_POST['user_id'])) {
@@ -11,17 +11,17 @@ if (isset($_POST['article_id']) && isset($_POST['user_id'])) {
     if ($_SESSION['user_id'] == $_POST['user_id']) {
         $article_id = $_POST['article_id'];
         $user_id = $_POST['user_id'];
-
+        
         if (addFavoris($pdo, $user_id, $article_id)) {
-            $response['success'] = true;
-            $response['message'] = 'Article ajouté aux favoris';    
-
+            $result = true;
+            $error = 'Article ajouté aux favoris';    
+            http_response_code(200);
         } else {
-            $response['message'] = 'erreur lors de l\'ajout aux favoris';
+            http_response_code(500);
             $error = 'Erreur lors de l\'ajout aux favoris';
         }
     } else {
-        $response['message'] = 'Vous n\'avez pas la permission d\'ajouter cet article aux favoris';
+        http_response_code(403);
         $error = 'Vous n\'avez pas la permission d\'ajouter cet article aux favoris';
     }
 

@@ -5,7 +5,6 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/../db.php';
 
-$response = ['success' => false, 'message' => 'Une erreur est survenue'];
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email = $_POST['email'] ?? '';
@@ -18,9 +17,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $adresse = $_POST['adresse_postale'] ?? null;
 
     if (empty($email) || empty($password) || empty($confirm)) {
-        $response['message'] = "Champs obligatoires manquants";
+        $erreurs = "Champs obligatoires manquants";
+        http_response_code(400);
     } elseif ($password !== $confirm) {
-        $response['message'] = "Les mots de passe ne correspondent pas";
+        $erreurs = "Les mots de passe ne correspondent pas";
+        http_response_code(400);
     } else {
         try {
             $stmt = $pdo->prepare("SELECT id FROM users WHERE email = :email");
@@ -57,11 +58,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $response['message'] = "Bienvenue ! Redirection en cours...";
             }
         } catch (PDOException $e) {
-            $response['message'] = "Erreur SQL : " . $e->getMessage();
+            $erreurs = "Erreur SQL : " . $e->getMessage();
         }
     }
 }
 
 header('Content-Type: application/json');
-echo json_encode($response);
 exit;

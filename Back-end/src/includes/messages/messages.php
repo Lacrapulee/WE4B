@@ -8,7 +8,7 @@ include '../mongo.php'; // Contient ton instance $mongoClient
 // 1. SÉCURITÉ : L'utilisateur doit être connecté
 if (!isset($_SESSION['user_id'])){
     http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Connexion requise.']);
+    $message = 'Connexion requise.';
     exit();
 }
 
@@ -19,7 +19,7 @@ $with_user_id = isset($_GET['id']) ? $_GET['id'] : null; // id2
 
 if (!$with_user_id) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'L\'ID de l\'interlocuteur (with_user) est manquant.']);
+    $message = 'L\'ID de l\'interlocuteur (with_user) est manquant.';
     exit();
 }
 
@@ -65,18 +65,11 @@ try {
     }
 
     // 8. RÉPONSE JSON
-    header('Content-Type: application/json');
-    echo json_encode([
-        'success' => true,
-        'chatting_with' => $with_user_id,
-        'messages' => $chat_history
-    ]);
+    $message = "Récupération réussie.";
 
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'message' => 'Erreur lors de la récupération du chat : ' . $e->getMessage()
-    ]);
+    $message = 'Erreur lors de la récupération du chat : ' . $e->getMessage();
+
 }
 ?>

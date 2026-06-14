@@ -9,11 +9,6 @@ session_name('MYAPP_SESSION');
 
 session_start(); 
 
-// DEBUG - à supprimer après
-error_log('ACTION: ' . ($_GET['action'] ?? 'none'));
-error_log('SESSION USER_ID: ' . ($_SESSION['user_id'] ?? 'NOT SET'));
-error_log('SESSION CONTENT: ' . json_encode($_SESSION));
-
 // 2. EN-TÊTES CORS
 header("Access-Control-Allow-Origin: http://localhost:4200");
 header("Access-Control-Allow-Credentials: true"); 
@@ -126,7 +121,7 @@ switch ($method) {
                 }
                 require_once $path;
                 
-                // Nettoyer les champs binaires non-UTF8
+                
                 $favorisClean = array_map(function($item) {
                     unset($item['coordonnees']);
                     return $item;

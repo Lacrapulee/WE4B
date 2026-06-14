@@ -10,7 +10,7 @@ $response = ['success' => false, 'message' => 'Une erreur est survenue'];
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     $response['message'] = "Méthode non autorisée";
     header('Content-Type: application/json');
-    echo json_encode($response);
+    http_response_code(405);
     exit;
 }
 
@@ -18,7 +18,8 @@ $email = isset($_POST['email']) ? trim($_POST['email']) : '';
 $password = isset($_POST['password']) ? $_POST['password'] : '';
 
 if (empty($email) || empty($password)) {
-    $response['message'] = "Champs manquants";
+    $erreurs = "Champs manquants";
+    http_response_code(400);
 } else {
     try {
         $stmt = $pdo->prepare("SELECT id, email, password, is_admin FROM users WHERE email = :email");
@@ -26,9 +27,11 @@ if (empty($email) || empty($password)) {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$user) {
-            $response['message'] = "Utilisateur introuvable";
+            http_response_code(404);
+            $erreurs = "Utilisateur introuvable";
         } elseif (!password_verify($password, $user['password'])) {
-            $response['message'] = "Mot de passe incorrect";
+            http_response_code(400);
+            $erreurs = "Mot de passe incorrect";
         } else {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['email'] = $user['email'];
@@ -40,10 +43,11 @@ if (empty($email) || empty($password)) {
             $response['is_admin'] = (bool)$user['is_admin'];
         }
     } catch (PDOException $e) {
-        $response['message'] = "Erreur SQL : " . $e->getMessage();
+        http_response_code(500);
+        $erreurs = "Erreur SQL : " . $e->getMessage();
     }
 }
 
 header('Content-Type: application/json');
-echo json_encode($response);
+http_response_code(http_response_code() ?: 200);
 exit;

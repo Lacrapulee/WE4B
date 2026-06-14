@@ -6,6 +6,7 @@ require_once __DIR__ . '/../articles_functions.php';
 // 1. Vérification de base : l'utilisateur est-il connecté ?
 if (!isset($_SESSION['user_id'])) {
     header('Location: /routeur.php?action=auth');
+    http_response_code(403);
     exit();
 }
 
@@ -39,8 +40,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_article'])) {
     // Pour cet exemple, on simule la mise à jour :
     $stmt = $pdo->prepare("UPDATE articles SET titre = ?, description = ?, prix = ?, categorie_id = ? WHERE id = ?");
     $stmt->execute([$titre, $description, $prix, $categorie_id, $productId]);
-
+    $result = [
+        'id' => $productId,
+        'titre' => $titre,
+        'description' => $description,
+        'prix' => $prix,
+        'categorie_id' => $categorie_id
+    ];
     // Redirection après succès
     header('Location: /routeur.php?action=item&id=' . $productId);
+    http_response_code(200);
     exit();
 }

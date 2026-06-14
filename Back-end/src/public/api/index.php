@@ -61,32 +61,45 @@ switch ($method) {
 
     case 'GET':
         switch ($action) {
+            case 'conversations':
+                require_once __DIR__ . '/../../includes/conversations/conversations.php';
+                $response = [
+                    'message'       => $message ?? '',
+                    'result'        => $result ?? []
+                ];
+                echo json_encode($response);
+                break;
+            case 'messages':
+                require_once __DIR__ . '/../../includes/messages/messages.php';
+                $response = [
+                    'message' => $message ?? '',
+                    'result'  => $chat_history ?? []
+                ];
+                echo json_encode($response); 
+                break;
+                
             case 'catalogue':
                 require_once __DIR__ . '/../../includes/catalogue/catalogue.php';
-                $response = [
-                    'articles'   => $results ?? [],
-                    'categories' => $categories ?? []
+                $results = [
+                            "annonces" => $results, 
+                            "categories" => $categories
                 ];
+
+                $response = [    
+                'result'   => $results ?? [],
+                'message' => 'Récupération réussie'
+                ];
+
                 http_response_code(200);
                 echo json_encode($response);
                 break;
 
            case 'item':
                 require_once __DIR__ . '/../../includes/item/item.php';
+                $message = $errorMessage ?? 'Récupération réussie';
                 $response = [
-                    'item' => [
-                        'id'          => (int)$product['id'],
-                        'titre'       => (string)$product['titre'],
-                        'prix'        => (float)$product['prix'],
-                        'description' => (string)($product['description'] ?? ''),
-                        'statut'      => (string)($product['statut'] ?? ''),
-                        'categorie'   => (int)($product['categorie_id'] ?? 0),
-                        'vendeur_id'  => (string)($product['vendeur_id'] ?? '')
-                    ],
-                    'images'     => $allImages ?? ['default.png'],
-                    'similarAds' => $similarAds ?? [],
-                    'isOwner'    => (bool)$isOwner,
-                    'isAdmin'    => (bool)$isAdmin
+                    'result'  => $results ?? [],
+                    'message' => $message
                 ];
                 http_response_code(200);
                 echo json_encode($response);
@@ -95,77 +108,19 @@ switch ($method) {
             case 'user':
                 require_once __DIR__ . '/../../includes/user/user.php';
                 $response = [
-                    'user' => [
-                        'id'              => $user['id'],
-                        'nom'             => $user['nom'],
-                        'prenom'          => $user['prenom'],
-                        'telephone'       => $user['telephone'],
-                        'email'           => $user['email'],
-                        'adresse_postale' => $user['adresse_postale'],
-                        'created_at'      => $user['created_at']
-                    ],
-                    'articles' => $articles ?? [],
-                    'reviews'  => $reviews ?? [],
-                    'isOwner'  => (bool)$is_owner,
-                    'isAdmin'  => (bool)$isAdmin
+                    'result'  => $results ?? [],
+                    'message' => 'Récupération réussie'
                 ];
                 http_response_code(200);
                 echo json_encode($response);
                 break;
 
             case 'favoris':
-                $path = __DIR__ . '/../../includes/favoris/favoris.php';
-                if (!file_exists($path)) {
-                    echo json_encode(['error' => 'fichier introuvable: ' . $path]);
-                    break;
-                }
-                require_once $path;
-                
-                
-                $favorisClean = array_map(function($item) {
-                    unset($item['coordonnees']);
-                    return $item;
-                }, $favoris ?? []);
-                
-                echo json_encode([
-                    'favoris' => $favorisClean,
+                require_once __DIR__ . '/../../includes/favoris/favoris.php';
+                $response = [
+                    'favoris' => $favoris ?? [],
                     'images'  => $images ?? []
-                ]);
-                break;
-
-            case 'check_auth':
-                if (isset($_SESSION['user_id'])) {
-                    http_response_code(200);
-                    echo json_encode(['isLoggedIn' => true, 'user_id' => $_SESSION['user_id']]);
-                } else {
-                    http_response_code(200);
-                    echo json_encode(['isLoggedIn' => false]);
-                }
-                break;
-
-            case 'mes_commandes':
-                require_once __DIR__ . '/../../includes/mes_commandes/mes_commandes.php';
-                http_response_code(200);
-                echo json_encode([
-                    'commandes' => $commandes ?? [],
-                    'images' => $imagesByCommande ?? []
-                ]);
-                break;
-
-            case 'paiement':
-                $_GET['id'] = $_GET['id'] ?? null;
-                require_once __DIR__ . '/../../includes/paiement/paiement.php';
-                http_response_code(200);
-                // Supprimer le champ binaire non sérialisable
-                if (isset($viewData['product']['coordonnees'])) {
-                    unset($viewData['product']['coordonnees']);
-                }
-                echo json_encode($viewData);
-                break;
-
-            case 'logout':
-                session_unset();
-                session_destroy();
+                ];
                 http_response_code(200);
                 echo json_encode(['success' => true, 'message' => 'Déconnecté']);
                 break;
@@ -178,16 +133,24 @@ switch ($method) {
 
     case 'POST':
         switch ($action) {
+            case 'post_message':
+                include __DIR__ . '/../../includes/post_message/post_message.php'; 
+                
+                $response = [
+                    'message'       => $message ?? '',
+                    'result'        => $result ?? []
+                ];
+                echo json_encode($response);
+                break;
+
             case 'connexion':
                 $_POST['email'] = $inputData['email'] ?? ''; 
                 $_POST['password'] = $inputData['password'] ?? '';
                 include __DIR__ . '/../../includes/connexion/connexion.php'; 
                 
-                http_response_code(200);
                 echo json_encode([
-                    'success' => empty($erreurs), 
                     'message' => $erreurs ?? 'Connexion réussie', 
-                    'user_id' => $_SESSION['user_id'] ?? null 
+                    'result' => $_SESSION['user_id'] ?? null 
                 ]);
                 break;
 
@@ -202,21 +165,16 @@ switch ($method) {
                 $_POST['adresse_postale'] = $inputData['adresse_postale'] ?? null;
                 include __DIR__ . '/../../includes/inscription/inscription.php'; 
                 
-                http_response_code(201); 
-                echo json_encode(['success' => empty($erreurs), 'message' => $erreurs ?? 'Utilisateur créé']);
+                echo json_encode(['message' => $erreurs ?? 'Utilisateur créé',
+                'result' => $_SESSION['user_id'] ?? null] );
                 break;
 
             case 'post_item':
                 $_POST['vendeur_id'] = $_SESSION['user_id'] ?? null; 
                 include __DIR__ . '/../../includes/post/post.php'; 
                 
-                if (empty($erreurs) && !empty($nouvelArticleId)) {
-                    http_response_code(201);
-                    echo json_encode(['success' => true, 'article_id' => $nouvelArticleId, 'message' => 'Article publié avec succès']);
-                } else {
-                    http_response_code(400);
-                    echo json_encode(['success' => false, 'errors' => $erreurs]);
-                }
+                echo json_encode(['message' => $erreurs ?? 'Article publié avec succès', 'result' => $nouvelArticleId ?? null]);
+              
                 break;
 
             case 'favoris':
@@ -224,11 +182,9 @@ switch ($method) {
                 $_POST['user_id'] = $inputData['user_id'] ?? null;
                 include __DIR__ . '/../../includes/add_Favoris/add_Favoris.php'; 
                 
-                http_response_code(200);
                 echo json_encode([
-                    'success' => empty($erreurs), 
-                    'errors' => $erreurs ?? [], 
-                    'message' => $response['message'] ?? ''
+                    'errors' => $error ?? null, 
+                    'message' => $message ?? ''
                 ]);
                 break;
 
@@ -287,24 +243,16 @@ switch ($method) {
     case 'PUT':
         switch ($action) {
             case 'edit_profile':
-                if($_SESSION['user_id'] != ($inputData['id'] ?? 0) && !($_SESSION['is_admin'] ?? false)) {
-                    http_response_code(403); 
-                    echo json_encode(['success' => false, 'error' => 'Vous n\'avez pas la permission de modifier ce profil']);
-                    include __DIR__ . '/save_log.php'; // On log l'erreur 403
-                    exit();
-                }
                 $_POST = $inputData; 
                 include __DIR__ . '/../../includes/edit_profile/edit_profile.php'; 
-                
-                http_response_code(200);
-                echo json_encode(['success' => true, 'message' => 'Profil mis à jour']);
+                echo json_encode(['result' => $result, 'message' => $error ?? 'Profil mis à jour avec succès']);
                 break;
 
             case 'edit_item':
 
                 if($_SESSION['user_id'] != ($inputData['vendeur_id'] ?? 0) && !($_SESSION['is_admin'] ?? false)) {
                     http_response_code(403); 
-                    echo json_encode(['success' => false, 'error' => 'Vous n\'avez pas la permission de modifier cet article']);
+                    echo json_encode(['result' => null, 'message' => 'Vous n\'avez pas la permission de modifier cet article']);
                     include __DIR__ . '/save_log.php'; // On log l'erreur 403
                     exit();
                 }
@@ -319,7 +267,7 @@ switch ($method) {
                 $stmt->execute([$titre, $description, $prix, $categorie_id, $statut, $productId]);
 
                 http_response_code(200);
-                echo json_encode(['success' => true, 'message' => 'Article modifié']);
+                echo json_encode(['result' => $result, 'message' => $error ?? 'Article modifié']);
                 break;
 
             case 'commande_recue':
@@ -344,33 +292,35 @@ switch ($method) {
     case 'DELETE':
         switch ($action) {
             case 'delete_item':
-                    if($_SESSION['user_id'] != ($inputData['vendeur_id'] ?? 0)) {
-                        http_response_code(403); 
-                        echo json_encode(['success' => false, 'error' => 'Vous n\'avez pas la permission de supprimer cet article']);
-                        exit();
-                    }                
-                $_GET['id'] = $inputData['id'] ?? null; //id de l'article à supprimer
+                if($_SESSION['user_id'] != ($inputData['vendeur_id'] ?? 0)) {
+                    http_response_code(403); 
+                    echo json_encode(['success' => false, 'error' => 'Vous n\'avez pas la permission de supprimer cet article']);
+                    include __DIR__ . '/save_log.php'; // On log l'erreur 403
+                    exit();
+                }                
+                $_GET['id'] = $inputData['id'] ?? null; 
                 include __DIR__ . '/../../includes/delete_item/delete_item.php';
                 http_response_code(200);
-                echo json_encode(['success' => true, 'message' => 'Article supprimé']);
+                echo json_encode(['result' => $result, 'message' => $error ?? 'Article supprimé']);
                 break;
 
             case 'delete_user':
                 $_GET['id'] = $inputData['id'] ?? null; 
                 include __DIR__ . '/../../includes/delete_user/delete_user.php';
                 http_response_code(200);
-                echo json_encode(['success' => true, 'message' => 'Compte supprimé']);
+                echo json_encode(['result' => $result, 'message' => $error ?? 'Compte supprimé']);
                 break;
 
             case 'favoris':
                 $_POST['article_id'] = $inputData['article_id'] ?? null;
                 $_POST['id_user'] = $inputData['user_id'] ?? null;
                 include __DIR__ . '/../../includes/delete_favoris/delete_favoris.php';
-                http_response_code(200);
                 if (isset($result) && $result) {
-                    echo json_encode(['success' => true, 'message' => 'Retiré des favoris']);
+                    http_response_code(200);
+                    echo json_encode(['result' => $result, 'message' => $error ?? 'Retiré des favoris']);
                 } else {
-                    echo json_encode(['success' => false, 'message' => 'Erreur lors de la suppression des favoris']);
+                    http_response_code(400);
+                    echo json_encode(['result' => null, 'message' => $error ?? 'Erreur lors de la suppression des favoris']);
                 }
                 break;
 

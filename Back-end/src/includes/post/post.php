@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../db.php';
 include_once __DIR__ . '/../tools.php';
 
-$erreurs = [];
+$erreurs = null;
 $succes = [];
 $nouvelArticleId = null;
 
@@ -10,7 +10,8 @@ $nouvelArticleId = null;
 $vendeur_id = $_POST['vendeur_id'] ?? ($_SESSION['user_id'] ?? null);
 
 if (!$vendeur_id) {
-    $erreurs[] = "Utilisateur non connecté.";
+    $erreurs = "Utilisateur non connecté.";
+    http_response_code(401);
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Récupération des données du formulaire
@@ -29,7 +30,8 @@ if (!$vendeur_id) {
     $nombreDeFichiers = isset($_FILES['ma_super_image']['name']) ? count((array)$_FILES['ma_super_image']['name']) : 0;
     
     if ($nombreDeFichiers === 0) {
-        $erreurs[] = "Aucune image sélectionnée.";
+        $erreurs = "Aucune image sélectionnée.";
+        http_response_code(400);
     }
 
     // --- TRAITEMENT DES IMAGES ---
@@ -47,13 +49,16 @@ if (!$vendeur_id) {
                 if (move_uploaded_file($cheminTemporaire, $cheminFinal)) {
                     array_push($succes, [$nomSecurise, $i + 1]); // On stocke le nom de l'image et son ordre
                 } else {
-                    $erreurs[] = "Erreur serveur pour " . htmlspecialchars($nomFichierOriginal);
+                    $erreurs = "Erreur serveur pour " . htmlspecialchars($nomFichierOriginal);
+                    http_response_code(500);
                 }
             } else {
-                $erreurs[] = "Fichier invalide ou non autorisé : " . htmlspecialchars($nomFichierOriginal);
+                $erreurs = "Fichier invalide ou non autorisé : " . htmlspecialchars($nomFichierOriginal);
+                http_response_code(400);
             }
         } elseif ($_FILES['ma_super_image']['error'][$i] !== UPLOAD_ERR_NO_FILE) {
-            $erreurs[] = "Erreur de téléchargement pour l'image " . ($i + 1);
+            $erreurs = "Erreur de téléchargement pour l'image " . ($i + 1);
+            http_response_code(400);
         }
     }
 
@@ -70,7 +75,7 @@ if (!$vendeur_id) {
         foreach ($succes as $image) {
             addImage($pdo, $nouvelArticleId, $image[0], $image[1]); // $image[0] = nom de l'image, $image[1] = ordre
         }
-        
+        http_response_code(201);
     } elseif (!empty($erreurs)) {
         // Nettoyage des images orphelines si échec
         foreach ($succes as $imageOrpheline) {
@@ -78,6 +83,7 @@ if (!$vendeur_id) {
         }
     }
 } else {
-    $erreurs[] = "Méthode non autorisée.";
+    http_response_code(405);
+    $erreurs = "Méthode non autorisée.";
 }
 ?>

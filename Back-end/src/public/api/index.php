@@ -59,6 +59,23 @@ switch ($method) {
 
     case 'GET':
         switch ($action) {
+            case 'conversations':
+                require_once __DIR__ . '/../../includes/conversations/conversations.php';
+                $response = [
+                    'messages'      => $messages ?? []
+                ];
+                http_response_code(200);
+                echo json_encode($response);
+                break;
+            case 'messages':
+                require_once __DIR__ . '/../../includes/messages/messages.php';
+                $response = [
+                    'messages' => $messages ?? []
+                ];
+                http_response_code(200);
+                echo json_encode($response); 
+                break;
+                
             case 'catalogue':
                 require_once __DIR__ . '/../../includes/catalogue/catalogue.php';
                 $response = [
@@ -129,6 +146,13 @@ switch ($method) {
 
     case 'POST':
         switch ($action) {
+            case 'post_message':
+                include __DIR__ . '/../../includes/post_message/post_message.php'; 
+                
+                http_response_code(201); 
+                echo json_encode(['success' => empty($erreurs), 'message' => $erreurs ?? 'Message envoyé']);
+                break;
+
             case 'connexion':
                 $_POST['email'] = $inputData['email'] ?? ''; 
                 $_POST['password'] = $inputData['password'] ?? '';

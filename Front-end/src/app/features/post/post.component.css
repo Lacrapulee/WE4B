@@ -1,0 +1,13 @@
+/* Les styles spécifiques au composant Post sont ici.
+   La majorité du style est gérée par les classes TailwindCSS dans le template HTML. */
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+}
+
+/* Cache l'input file natif qui est remplacé par le bouton custom dans le HTML */
+input[type="file"] {
+  display: none;
+}

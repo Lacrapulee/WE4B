@@ -13,23 +13,70 @@
   <div *ngIf="!loading && commandes.length > 0" class="flex flex-col gap-6">
     <div *ngFor="let cmd of commandes" class="bg-white border rounded-lg shadow-sm p-4 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
       <div class="flex items-center gap-4">
-        <img [src]="'/assets/img/' + (cmd.article?.image || 'default.png')" alt="Article" class="w-20 h-20 object-cover rounded-md">
+        <img [src]="'http://localhost:8000/assets/img/' + (cmd.image || 'default.png')" alt="Article" class="w-20 h-20 object-cover rounded-md">
         <div>
-          <h3 class="font-bold text-lg">Commande #{{ cmd.id }}</h3>
-          <p class="text-gray-600">{{ cmd.article?.titre || 'Article inconnu' }}</p>
-          <p class="text-sm text-gray-500">Acheté le {{ cmd.date_achat | date:'short' }}</p>
+          <h3 class="font-bold text-lg">Commande #{{ cmd.reference }}</h3>
+          <p class="text-gray-600">{{ cmd.titre || 'Article inconnu' }}</p>
+          <p class="text-sm text-gray-500">Acheté le {{ cmd.created_at | date:'short' }}</p>
         </div>
       </div>
-      <div class="text-right flex flex-col justify-center items-end">
-        <span class="text-xl font-bold">{{ cmd.prix_total | number:'1.2-2' }} €</span>
-        <span class="inline-block mt-2 px-3 py-1 text-sm rounded-full" 
+      <div class="text-right flex flex-col justify-center items-end gap-2">
+        <span class="text-xl font-bold">{{ cmd.montant | number:'1.2-2' }} €</span>
+        <span class="inline-block px-3 py-1 text-sm rounded-full" 
               [ngClass]="{
                 'bg-green-100 text-green-800': cmd.statut === 'recu',
-                'bg-yellow-100 text-yellow-800': cmd.statut === 'en_cours',
+                'bg-blue-100 text-blue-800': cmd.statut === 'paye',
                 'bg-gray-100 text-gray-800': cmd.statut === 'annule'
               }">
-          {{ cmd.statut | uppercase }}
+          {{ cmd.statut === 'paye' ? 'Envoyé' : (cmd.statut | uppercase) }}
         </span>
+        
+        <div class="mt-2 flex gap-2">
+          <button *ngIf="cmd.statut === 'paye'" (click)="markAsReceived(cmd)" class="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 transition font-bold text-sm">
+            Marquer comme reçu
+          </button>
+          <button *ngIf="cmd.statut === 'recu' && !cmd.a_laisse_avis" (click)="openReviewModal(cmd)" class="bg-yellow-500 text-white px-4 py-2 rounded shadow hover:bg-yellow-600 transition font-bold text-sm">
+            Laisser un avis
+          </button>
+          <button *ngIf="cmd.statut === 'recu' && cmd.a_laisse_avis" class="bg-gray-300 text-gray-600 px-4 py-2 rounded shadow cursor-not-allowed font-bold text-sm" disabled>
+            Avis laissé
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review Modal -->
+  <div *ngIf="reviewingCmd" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+      <h2 class="text-xl font-bold mb-4">Évaluer le vendeur</h2>
+      <p class="text-gray-600 mb-4">Donnez votre avis sur votre achat de <strong>{{ reviewingCmd.titre }}</strong>.</p>
+      
+      <div class="mb-4">
+        <label class="block text-sm font-bold text-gray-700 mb-2">Note (sur 5)</label>
+        <select [(ngModel)]="reviewNote" class="w-full border rounded-lg p-2 focus:ring-blue-500 focus:border-blue-500">
+          <option [value]="5">5 - Excellent</option>
+          <option [value]="4">4 - Très bien</option>
+          <option [value]="3">3 - Moyen</option>
+          <option [value]="2">2 - Décevant</option>
+          <option [value]="1">1 - Mauvais</option>
+        </select>
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-sm font-bold text-gray-700 mb-2">Commentaire</label>
+        <textarea [(ngModel)]="reviewComment" rows="4" class="w-full border rounded-lg p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Racontez votre expérience..."></textarea>
+      </div>
+
+      <div *ngIf="reviewError" class="text-red-600 text-sm mb-4">
+        {{ reviewError }}
+      </div>
+
+      <div class="flex justify-end gap-3">
+        <button (click)="cancelReview()" class="px-4 py-2 border rounded-lg hover:bg-gray-50 transition">Annuler</button>
+        <button (click)="submitReview()" [disabled]="submittingReview" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 font-bold">
+          {{ submittingReview ? 'Envoi...' : 'Envoyer l\'avis' }}
+        </button>
       </div>
     </div>
   </div>

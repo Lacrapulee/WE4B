@@ -33,4 +33,28 @@
       <app-article *ngFor="let item of articles" [item]="item" [isLoggedIn]="true" [userId]="user.id"></app-article>
     </div>
   </div>
+
+  <div *ngIf="!loading && user" class="mt-12">
+    <h2 class="text-xl font-bold mb-4 border-b pb-2">Avis sur {{ user.prenom }}</h2>
+    
+    <div *ngIf="reviews.length === 0" class="text-gray-500 py-4">
+      Cet utilisateur n'a pas encore reçu d'avis.
+    </div>
+
+    <div *ngIf="reviews.length > 0" class="flex flex-col gap-4">
+      <div *ngFor="let review of reviews" class="bg-white border rounded-lg p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <div class="font-bold text-gray-800">{{ review.auteur_prenom }} {{ review.auteur_nom }}</div>
+          <div class="text-sm text-gray-500">{{ review.date_avis | date:'shortDate' }}</div>
+        </div>
+        <div class="text-yellow-500 mb-2 font-bold">
+          Note: {{ review.note }} / 5
+        </div>
+        <p class="text-gray-700 italic">"{{ review.commentaire }}"</p>
+        <div class="text-xs text-gray-500 mt-2" *ngIf="review.article_titre">
+          À propos de : {{ review.article_titre }}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { CatalogueApiService } from '../../core/api/catalogue-api.service';
 
 @Component({
@@ -16,8 +16,12 @@ export class ItemDetailComponent implements OnInit {
   similarAds: any[] = [];
   vendeur: any = null;
   loading: boolean = true;
+  isOwner: boolean = false;
+  isDeleting: boolean = false;
+  selectedImageIndex: number = 0;
+  readonly backendUrl = 'http://localhost:8000';
 
-  constructor(private route: ActivatedRoute, private api: CatalogueApiService) {}
+  constructor(private route: ActivatedRoute, private router: Router, private api: CatalogueApiService) {}
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
@@ -32,6 +36,7 @@ export class ItemDetailComponent implements OnInit {
     this.loading = true;
     this.item = null;
     this.vendeur = null;
+    this.isOwner = false;
     
     this.api.getItem(id).subscribe({
       next: (data) => {
@@ -39,6 +44,7 @@ export class ItemDetailComponent implements OnInit {
         this.item = data.item;
         this.images = data.images || ['default.png'];
         this.similarAds = data.similarAds || [];
+        this.isOwner = !!data.isOwner;
         
         // Load seller info if we have a vendeur_id
         if (this.item && this.item.vendeur_id) {
@@ -67,5 +73,42 @@ export class ItemDetailComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  selectImage(index: number) {
+    this.selectedImageIndex = index;
+  }
+
+  prevImage() {
+    if (this.images.length > 0) {
+      this.selectedImageIndex = (this.selectedImageIndex > 0) ? this.selectedImageIndex - 1 : this.images.length - 1;
+    }
+  }
+
+  nextImage() {
+    if (this.images.length > 0) {
+      this.selectedImageIndex = (this.selectedImageIndex < this.images.length - 1) ? this.selectedImageIndex + 1 : 0;
+    }
+  }
+
+  deleteItem() {
+    if (this.item && confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?')) {
+      this.isDeleting = true;
+      this.api.deleteItem(this.item.id).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.router.navigate(['/catalogue']);
+          } else {
+            alert(response.error || 'Erreur lors de la suppression');
+            this.isDeleting = false;
+          }
+        },
+        error: (err) => {
+          console.error(err);
+          alert('Erreur réseau ou permission refusée');
+          this.isDeleting = false;
+        }
+      });
+    }
   }
 }

@@ -56,7 +56,8 @@ export class CatalogueComponent implements OnInit {
   }
 
   toggleFavoris(item: CatalogueItem) {
-    this.api.toggleFavoris(item.id).subscribe({
+    const action = item.isFavoris ? 'remove' : 'add';
+    this.api.toggleFavoris(item.id, action).subscribe({
       next: (response) => {
         if (response.success) {
           item.isFavoris = !item.isFavoris;

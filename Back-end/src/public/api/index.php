@@ -4,6 +4,8 @@
 ini_set('session.cookie_samesite', 'Lax'); 
 ini_set('session.cookie_secure', '0'); 
 ini_set('session.cookie_httponly', '1'); 
+ini_set('session.cookie_domain', 'localhost');
+session_name('MYAPP_SESSION');
 
 session_start(); 
 
@@ -114,14 +116,64 @@ switch ($method) {
                 break;
 
             case 'favoris':
-                require_once __DIR__ . '/../../includes/favoris/favoris.php';
+                $path = __DIR__ . '/../../includes/favoris/favoris.php';
+                if (!file_exists($path)) {
+                    echo json_encode(['error' => 'fichier introuvable: ' . $path]);
+                    break;
+                }
+                require_once $path;
                 
+                
+                $favorisClean = array_map(function($item) {
+                    unset($item['coordonnees']);
+                    return $item;
+                }, $favoris ?? []);
+                
+                echo json_encode([
+                    'favoris' => $favorisClean,
+                    'images'  => $images ?? []
+                ]);
+                break;
+
+            case 'check_auth':
+                if (isset($_SESSION['user_id'])) {
+                    http_response_code(200);
+                    echo json_encode(['isLoggedIn' => true, 'user_id' => $_SESSION['user_id']]);
+                } else {
+                    http_response_code(200);
+                    echo json_encode(['isLoggedIn' => false]);
+                }
+                break;
+
+            case 'mes_commandes':
+                require_once __DIR__ . '/../../includes/mes_commandes/mes_commandes.php';
                 $response = [
                     'result'  => $results ?? [],
                     'message' => 'Récupération réussie'
                 ];
                 http_response_code(200);
-                echo json_encode($response);
+                echo json_encode([
+                    'commandes' => $commandes ?? [],
+                    'images' => $imagesByCommande ?? []
+                ]);
+                break;
+
+            case 'paiement':
+                $_GET['id'] = $_GET['id'] ?? null;
+                require_once __DIR__ . '/../../includes/paiement/paiement.php';
+                http_response_code(200);
+                // Supprimer le champ binaire non sérialisable
+                if (isset($viewData['product']['coordonnees'])) {
+                    unset($viewData['product']['coordonnees']);
+                }
+                echo json_encode($viewData);
+                break;
+
+            case 'logout':
+                session_unset();
+                session_destroy();
+                http_response_code(200);
+                echo json_encode(['success' => true, 'message' => 'Déconnecté']);
                 break;
                 
             default:
@@ -187,6 +239,52 @@ switch ($method) {
                 ]);
                 break;
 
+            case 'paiement':
+                $_POST = $inputData;
+                $_POST['confirm_payment'] = true;
+                $_SERVER['REQUEST_METHOD'] = 'POST';
+                require_once __DIR__ . '/../../includes/paiement/paiement.php';
+                if ($viewData['statusCode'] === 200 && !empty($viewData['successMessage'])) {
+                    http_response_code(200);
+                    echo json_encode(['success' => true, 'reference' => $viewData['orderReference'], 'message' => $viewData['successMessage']]);
+                } else {
+                    http_response_code($viewData['statusCode']);
+                    echo json_encode(['success' => false, 'error' => $viewData['errorMessage']]);
+                }
+                break;
+
+            case 'avis':
+                $dest_id = $inputData['destinataire_id'] ?? null;
+                $note = intval($inputData['note'] ?? 0);
+                $commentaire = trim($inputData['commentaire'] ?? '');
+                $article_id = $inputData['article_id'] ?? null;
+                
+                if (!$dest_id || $note < 1 || $note > 5 || $commentaire === '') {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'error' => 'Données invalides']);
+                    break;
+                }
+                
+                if ($_SESSION['user_id'] == $dest_id) {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'error' => 'Vous ne pouvez pas vous noter vous-même']);
+                    break;
+                }
+                
+                $stmt = $pdo->prepare("SELECT id FROM avis WHERE expediteur_id = ? AND destinataire_id = ?");
+                $stmt->execute([$_SESSION['user_id'], $dest_id]);
+                if ($stmt->fetch()) {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'error' => 'Vous avez déjà laissé un avis']);
+                    break;
+                }
+                
+                $stmt = $pdo->prepare("INSERT INTO avis (article_id, expediteur_id, destinataire_id, note, commentaire, date_avis) VALUES (?, ?, ?, ?, ?, NOW())");
+                $stmt->execute([$article_id, $_SESSION['user_id'], $dest_id, $note, $commentaire]);
+                http_response_code(200);
+                echo json_encode(['success' => true, 'message' => 'Avis ajouté avec succès']);
+                break;
+
             default:
                 http_response_code(404);
                 echo json_encode(['error' => 'Endpoint POST introuvable']);
@@ -202,16 +300,38 @@ switch ($method) {
                 break;
 
             case 'edit_item':
+
                 if($_SESSION['user_id'] != ($inputData['vendeur_id'] ?? 0) && !($_SESSION['is_admin'] ?? false)) {
                     http_response_code(403); 
                     echo json_encode(['result' => null, 'message' => 'Vous n\'avez pas la permission de modifier cet article']);
                     include __DIR__ . '/save_log.php'; // On log l'erreur 403
                     exit();
                 }
-                $_POST = $inputData;
-                include __DIR__ . '/../../includes/edit_item/edit_item.php';
+
+                $titre = $inputData['titre'] ?? $product['titre'];
+                $description = $inputData['description'] ?? $product['description'];
+                $prix = $inputData['prix'] ?? $product['prix'];
+                $categorie_id = $inputData['categorie_id'] ?? $product['categorie_id'];
+                $statut = $inputData['statut'] ?? $product['statut'];
+
+                $stmt = $pdo->prepare("UPDATE articles SET titre = ?, description = ?, prix = ?, categorie_id = ?, statut = ? WHERE id = ?");
+                $stmt->execute([$titre, $description, $prix, $categorie_id, $statut, $productId]);
+
                 http_response_code(200);
                 echo json_encode(['result' => $result, 'message' => $error ?? 'Article modifié']);
+                break;
+
+            case 'commande_recue':
+                $vente_id = $inputData['vente_id'] ?? null;
+                if ($vente_id && isset($_SESSION['user_id'])) {
+                    $stmt = $pdo->prepare("UPDATE ventes SET statut = 'recu' WHERE id = ? AND acheteur_id = ?");
+                    $stmt->execute([$vente_id, $_SESSION['user_id']]);
+                    http_response_code(200);
+                    echo json_encode(['success' => true, 'message' => 'Commande marquée comme reçue']);
+                } else {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'error' => 'Erreur lors de la mise à jour']);
+                }
                 break;
 
             default:

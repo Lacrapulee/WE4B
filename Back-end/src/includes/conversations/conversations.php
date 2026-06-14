@@ -7,13 +7,9 @@ if (session_status() === PHP_SESSION_NONE) {
 include '../mongo.php'; // Contient ta connexion $mongoClient ou $db
 
 if (!isset($_SESSION['user_id'])){
-    $errors = [
-        'message' => 'Vous devez être connecté pour accéder à cette page.',
-        'code' => 401
-    ];
     
+    $message = 'Vous devez être connecté pour accéder à cette page.';
     http_response_code(401);
-    echo json_encode($errors);
     exit();
 }
 
@@ -55,17 +51,18 @@ try {
 
     // On renvoie le résultat en JSON pour ton front
     header('Content-Type: application/json');
-    echo json_encode([
+    $result = [
         'success' => true,
         'user_id' => $current_user_id,
         'messages' => $discussion
-    ]);
+    ];
+    $message = 'Messages récupérés avec succès.';
+
+    http_response_code(200);
 
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'message' => 'Erreur lors de la récupération des messages : ' . $e->getMessage()
-    ]);
+    $message = 'Erreur lors de la récupération des messages : ' . $e->getMessage();
+    
 }
 ?>

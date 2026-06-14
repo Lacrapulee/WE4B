@@ -8,7 +8,7 @@ include '../mongo.php'; // Contient $mongoClient
 // 1. SÉCURITÉ : L'utilisateur doit être connecté
 if (!isset($_SESSION['user_id'])){
     http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Connexion requise.']);
+    $message = 'Connexion requise.';
     exit();
 }
 
@@ -24,7 +24,7 @@ $sender_id = $_SESSION['user_id']; // L'expéditeur (id1) est TOUJOURS l'user co
 
 if (!$receiver_id || empty($content)) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Données manquantes (id2 ou content).']);
+    $message =  'Données manquantes (id2 ou content).';
     exit();
 }
 
@@ -46,17 +46,13 @@ try {
     // 6. RÉPONSE SUCCESS
     header('Content-Type: application/json');
     http_response_code(201); // 201 Created
-    echo json_encode([
-        'success' => true,
-        'message' => 'Message envoyé avec succès !',
-        'message_id' => (string)$result->getInsertedId()
-    ]);
+
+    $message = 'Message envoyé avec succès !';
+
 
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'message' => 'Erreur lors de l\'envoi : ' . $e->getMessage()
-    ]);
+    $message = 'Erreur lors de l\'envoi : ' . $e->getMessage();
+    
 }
 ?>

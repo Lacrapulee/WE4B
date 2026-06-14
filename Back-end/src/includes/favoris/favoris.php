@@ -18,4 +18,9 @@ $favoris = getFavorisUtilisateur($pdo, $_SESSION['user_id']);
 // Récupérer les images pour les favoris
 $articleIds = array_column($favoris, 'id');
 $images = getImagesByAnnonceIds($pdo, $articleIds);
+
+$results = [
+    'favoris' => $favoris ?? [],
+    'images'  => $images ?? []
+];
 ?>

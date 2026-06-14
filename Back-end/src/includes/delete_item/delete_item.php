@@ -3,6 +3,7 @@ require_once __DIR__ . '/../db.php';
 $itemIdToDelete = $_GET['id'] ?? null;
 if (!isset($_SESSION['user_id'])) {
     die("Action non autorisée.");
+    $error = "Action non autorisée.";
 }
 if ($_SESSION['is_admin'] == 1) {
     // Les admins peuvent supprimer n'importe quelle annonce
@@ -13,6 +14,7 @@ if ($_SESSION['is_admin'] == 1) {
     $itemOwnerId = $stmt->fetchColumn();
     
     if ($itemOwnerId != $_SESSION['user_id']) {
+        $error = "Action non autorisée.";
         die("Action non autorisée.");
     }
 }
@@ -24,10 +26,13 @@ if ($itemIdToDelete) {
 
 
     } catch (PDOException $e) {
-        die("Erreur lors de la suppression de l'annonce : " . $e->getMessage());
+        $error = "Erreur lors de la suppression de l'annonce : " . $e->getMessage();
+        die($error);
     }
+    $result = true;
 
 } else {
-    die("Action non autorisée.");
+    $error = "Action non autorisée.";
+    die($error);
 }
 ?>

@@ -95,6 +95,7 @@ switch ($method) {
                 break;
 
            case 'item':
+                
                 require_once __DIR__ . '/../../includes/item/item.php';
                 $message = $errorMessage ?? 'Récupération réussie';
                 $response = [

@@ -1,276 +1,140 @@
 <?php
+// 1. ON ACTIVE LE TAMPON DE SORTIE (Évite les erreurs "Headers already sent")
+ob_start();
 
-session_start(); 
+// 2. CONFIGURATION ET DÉMARRAGE DE LA SESSION
+ini_set('session.cookie_samesite', 'Lax'); 
+ini_set('session.cookie_secure', '0'); 
+ini_set('session.cookie_httponly', '0'); 
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require_once __DIR__ . '/../includes/db.php';
-require_once __DIR__ . '/../includes/favoris_functions.php';
 
-function ensureVentesSchema(PDO $pdo): void {
-    try {
-        $columnCheck = $pdo->prepare(
-            "SELECT COUNT(*)
-             FROM information_schema.COLUMNS
-             WHERE TABLE_SCHEMA = DATABASE()
-               AND TABLE_NAME = 'ventes'
-               AND COLUMN_NAME = 'acheteur_id'"
-        );
-        $columnCheck->execute();
 
-        if ((int) $columnCheck->fetchColumn() === 0) {
-            $pdo->exec("ALTER TABLE ventes ADD COLUMN acheteur_id char(36) DEFAULT NULL AFTER vendeur_id");
-        }
-    } catch (Throwable $e) {
-        error_log('ensureVentesSchema failed: ' . $e->getMessage());
+$action = $_GET['action'] ?? 'auth'; // La page de base par défaut est 'auth' (connexion)
+
+// ==========================================
+// VÉRIFICATION GLOBALE DE LA SÉCURITÉ ADMIN
+// ==========================================
+// Liste des pages accessibles sans être admin connecté
+$pagesPubliques = ['auth', 'connexion'];
+
+if (!in_array($action, $pagesPubliques)) {
+    // Si pas connecté OU connecté mais pas administrateur -> DECONNEXION ET RETOUR FORMULAIRE
+    if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1) {
+        session_destroy();
+        header('Location: /routeur.php?action=auth&error=access_denied');
+        exit();
     }
 }
 
-ensureVentesSchema($pdo);
-
-$action = $_GET['action'] ?? '';
-
+// ==========================================
+// GESTION DES REQUÊTES POST (Formulaires)
+// ==========================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     switch ($action) {
-        case 'favoris_ajax':
-            if (!isset($_SESSION['user_id'])) {
-                http_response_code(401);
-                header('Content-Type: application/json');
-                echo json_encode(['error' => 'Unauthorized']);
-                exit();
-            }
-
-            $articleId = (int) ($_POST['article_id'] ?? 0);
-            $favorisAction = $_POST['action'] ?? '';
-
-            if (!$articleId) {
-                http_response_code(400);
-                header('Content-Type: application/json');
-                echo json_encode(['error' => 'Invalid article_id']);
-                exit();
-            }
-
-            header('Content-Type: application/json');
-
-            switch ($favorisAction) {
-                case 'add':
-                    addFavoris($pdo, $_SESSION['user_id'], $articleId);
-                    echo json_encode(['success' => true, 'message' => 'Article ajouté aux favoris']);
-                    break;
-
-                case 'remove':
-                    removeFavoris($pdo, $_SESSION['user_id'], $articleId);
-                    echo json_encode(['success' => true, 'message' => 'Article retiré des favoris']);
-                    break;
-
-                case 'check':
-                    $isFavoris = isFavoris($pdo, $_SESSION['user_id'], $articleId);
-                    echo json_encode(['is_favoris' => $isFavoris]);
-                    break;
-
-                default:
-                    http_response_code(400);
-                    echo json_encode(['error' => 'Invalid action']);
-            }
-            exit();
-        
         case 'connexion':
             require_once __DIR__ . '/../includes/connexion/connexion.php';
-            break;
-        case 'delete_item':
-            require_once __DIR__ . '/../includes/delete_item/delete_item.php';
-            header('Location: /routeur.php?action=catalogue');
-            break;
-        case 'delete_user':
-            require_once __DIR__ . '/../includes/delete_user/delete_user.php';
-            header('Location: /routeur.php?action=catalogue');
-            break;
-        case 'inscription':
-            require_once __DIR__ . '/../includes/inscription/inscription.php';
-            break;
-        case 'post':  
-            require_once __DIR__ . '/../includes/post/post.php';
-            header('Location: /routeur.php?action=item&id=' . $nouvelArticleId); // Redirige vers la page de l'article nouvellement créé
-            break;
+            // Le fichier connexion.php remplit la session. On vérifie le résultat ici :
+            if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
+                header('Location: /routeur.php?action=dashboard');
+            } else {
+                // Si un utilisateur non-admin essaie de se connecter ici, on le rejette
+                session_destroy();
+                header('Location: /routeur.php?action=auth&error=not_admin');
+            }
+            exit();
+
         case 'edit_profile':
             require_once __DIR__ . '/../includes/edit_profile/edit_profile.php';
-            header('Location: /routeur.php?action=user&id=' . $user_id); // Redirige vers la page de profil après modification
-            break;
-        case 'paiement':
-            // Traite le paiement puis affiche le résultat sur la page de paiement
-            require_once __DIR__ . '/../includes/paiement/paiement.php';
-            require_once __DIR__ . '/../templates/header.php';
-            require_once __DIR__ . '/../templates/paiement/index.php';
-            require_once __DIR__ . '/../templates/footer.php';
-            break;
-        case 'edit_item':
-            require_once __DIR__ . '/../includes/edit_item/edit_item.php'; // Logique de mise à jour de l'article
-            header('Location: /routeur.php?action=item&id=' . $_POST['article_id']); // Redirige vers la page de l'article après modification
-            break;
-        case 'avis':
-            require_once __DIR__ . '/../includes/avis.php';
-            break;
-        case 'messages':
-            require_once __DIR__ . '/../includes/messages/messages.php';
-            break;
-
-        case 'valider_reception':
-            $venteId = $_POST['vente_id'];
-            $stmt = $pdo->prepare("UPDATE ventes SET statut = 'recu' WHERE id = ?");
-            $stmt->execute([$venteId]);
-            header('Location: /routeur.php?action=mes_commandes&success=recu');
+            header('Location: /routeur.php?action=user&success=profile_updated');
             exit();
-            break;
-        case 'valider_reception':
-            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['vente_id'])) {
-                $venteId = $_POST['vente_id'];
-                
-                $stmt = $pdo->prepare("UPDATE ventes SET statut = 'recu' WHERE id = ? AND acheteur_id = ?");
-                $stmt->execute([$venteId, $_SESSION['user_id']]);
-                
-                // Redirection vers le formulaire d'avis
-                $check = $pdo->prepare("SELECT vendeur_id, article_id FROM ventes WHERE id = ?");
-                $check->execute([$venteId]);
-                $info = $check->fetch();
-                
-                header("Location: /routeur.php?action=avis&vendeur_id=".$info['vendeur_id']."&article_id=".$info['article_id']);
-                exit();
-            }
-            break;
+
+        case 'edit_item':
+            require_once __DIR__ . '/../includes/edit_item/edit_item.php';
+            header('Location: /routeur.php?action=item&id=' . (int)($_POST['article_id'] ?? 0));
+            exit();
+
+        default:
+            http_response_code(444);
+            header('Location: /routeur.php?action=auth');
+            exit();
     }
 }
 
+// ==========================================
+// GESTION DES REQUÊTES GET (Affichage)
+// ==========================================
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     switch ($action) {
-        case 'user':
-            require_once __DIR__ . '/../includes/user/user.php';
-            include __DIR__ . '/../templates/user/index.php';
-            break;
-        case 'avis':
-            require_once __DIR__ . '/../templates/avis/index.php';
-            break;
-        case 'avis_form':
-            // Alias rétrocompatible pour les anciens liens
-            require_once __DIR__ . '/../templates/avis/index.php';
-            break;
-        case 'myarticle':
-            if (isset($_SESSION['user_id'])) {
-                header('Location: /routeur.php?action=user&id=' . $_SESSION['user_id']);
-            } else {
-                header('Location: /routeur.php?action=auth');
-            }
-            exit();
-        case 'catalogue':
-            require_once __DIR__ . '/../includes/catalogue/catalogue.php';
-            require_once __DIR__ . '/../templates/catalogue/index.php';
-            break;
-
-        case 'favoris':
-            require_once __DIR__ . '/../includes/favoris/favoris.php';
-            require_once __DIR__ . '/../templates/favoris/index.php';
-            break;
-
-        case 'deconnexion':
-            session_destroy();
-            header('Location: /routeur.php?action=catalogue');
-            exit();
-            break;
-
-        case 'edit_profile':
-            require_once __DIR__ . '/../includes/edit_profile/edit_profile.php';
-            
-            include __DIR__ . '/../templates/header.php';
-            include __DIR__ . '/../templates/edit_profile/index.php'; // Affiche la vue
-            include __DIR__ . '/../templates/footer.php';
-            break;
-        // ... dans ton switch ($action) au niveau du GET
-        case 'item':
-            // 1. Charger la logique (Définit les variables $product, $allImages, etc.)
-            require_once __DIR__ . '/../includes/item/item.php';
-            
-            // 2. Charger les éléments de vue
-            require_once __DIR__ . '/../templates/header.php'; // Ton header Tailwind
-            require_once __DIR__ . '/../templates/items/index.php'; // Le contenu qu'on vient de créer
-            require_once __DIR__ . '/../templates/footer.php';
-            break;
-
         case 'auth':
-            require_once __DIR__ . '/../templates/header.php'; // Ton header Tailwind
-            require_once __DIR__ . '/../templates/connexion/index.php'; // Le contenu de la page de connexion
+            // Empêche un admin déjà connecté de revenir sur la page de connexion
+            if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) {
+                header('Location: /routeur.php?action=dashboard');
+                exit();
+            }
+            require_once __DIR__ . '/../templates/header.php';
+            require_once __DIR__ . '/../templates/connexion/index.php';
             require_once __DIR__ . '/../templates/footer.php';
             break;
 
-        case 'inscription':
-            require_once __DIR__ . '/../templates/header.php'; // Ton header Tailwind
-            require_once __DIR__ . '/../templates/inscription/index.php'; // Le contenu de la page d'inscription
-            require_once __DIR__ . '/../templates/footer.php';
-            break;
-        
-        case 'post':
-            if (!isset($_SESSION['user_id'])) {
-                header('Location: /routeur.php?action=auth');
-                exit();
-            }
-            require_once __DIR__ . '/../templates/header.php'; // Ton header Tailwind
-            require_once __DIR__ . '/../templates/post/index.php'; // Le contenu de la page de publication d'annonce
-            require_once __DIR__ . '/../templates/footer.php';
-            break;
-
-        case 'paiement':
-            if (!isset($_SESSION['user_id'])) {
-                header('Location: /routeur.php?action=auth');
-                exit();
-            }
-            require_once __DIR__ . '/../includes/paiement/paiement.php';        
-            
-            // Logique de paiement (à implémenter)
-            require_once __DIR__ . '/../templates/header.php'; // Ton header Tailwind
-            require_once __DIR__ . '/../templates/paiement/index.php'; // Le contenu de la page de paiement
-            require_once __DIR__ . '/../templates/footer.php';
-            break;
-        case 'mes_commandes':
-            // Affiche les commandes de l'utilisateur connecté
-            if (!isset($_SESSION['user_id'])) {
-                header('Location: /routeur.php?action=auth');
-                exit();
-            }
-            require_once __DIR__ . '/../includes/db.php';
-            require_once __DIR__ . '/../templates/header.php';
-            require_once __DIR__ . '/../templates/mes_commandes/index.php';
-            require_once __DIR__ . '/../templates/footer.php';
-            break;
-        case 'edit_item':
-            require_once __DIR__ . '/../includes/item/item.php'; // Récupère les données de l'article
-            require_once __DIR__ . '/../templates/header.php'; // Ton header Tailwind
-            require_once __DIR__ . '/../templates/edit_item/index.php'; // Le contenu de la page d'édition d'article
-            require_once __DIR__ . '/../templates/footer.php';
-            break;
-        case 'messages':
-            if (!isset($_SESSION['user_id'])) {
-                header('Location: /routeur.php?action=connexion');
-                exit;
-            }
-            require_once __DIR__ . '/../templates/header.php';
-            require_once __DIR__ . '/../templates/messages/index.php';
-            require_once __DIR__ . '/../templates/footer.php';
-            break;
         case 'dashboard':
-
+            // Génération des graphiques Python (Mosaïque MongoDB / MySQL)
             $pythonScript = '/var/www/html/dashboard/generate_chart.py';
-
-            // La commande exécute Python et le '2>&1' permet de capturer les erreurs Python s'il y en a
             $output = shell_exec("python3 $pythonScript 2>&1");
+            $dashboardError = (trim($output) !== "Success") ? "Erreur stats : " . $output : null;
 
-            $dashboardError = null;
-
-            // On vérifie le message renvoyé par le script Python
-            if (trim($output) !== "Success") {
-                // Si Python a planté, on stocke l'erreur pour la pousser dans la template HTML
-                $dashboardError = "Impossible de générer les statistiques : " . $output;
-            }
             require_once __DIR__ . '/../templates/header.php';
             require_once __DIR__ . '/../templates/dashboard/index.php';
             require_once __DIR__ . '/../templates/footer.php';
             break;
+
+        case 'catalogue':
+            // Recherche et liste globale
+            require_once __DIR__ . '/../includes/catalogue/catalogue.php';
+            require_once __DIR__ . '/../templates/header.php';
+            require_once __DIR__ . '/../templates/catalogue/index.php';
+            require_once __DIR__ . '/../templates/footer.php';
+            break;
+
+        case 'item':
+            require_once __DIR__ . '/../includes/item/item.php';
+            require_once __DIR__ . '/../templates/header.php';
+            require_once __DIR__ . '/../templates/items/index.php';
+            require_once __DIR__ . '/../templates/footer.php';
+            break;
+
+        case 'user':
+            require_once __DIR__ . '/../includes/user/user.php';
+            require_once __DIR__ . '/../templates/header.php';
+            require_once __DIR__ . '/../templates/user/index.php';
+            require_once __DIR__ . '/../templates/footer.php';
+            break;
+
+        case 'edit_profile':
+            require_once __DIR__ . '/../includes/edit_profile/edit_profile.php';
+            require_once __DIR__ . '/../templates/header.php';
+            require_once __DIR__ . '/../templates/edit_profile/index.php';
+            require_once __DIR__ . '/../templates/footer.php';
+            break;
+
+        case 'edit_item':
+            require_once __DIR__ . '/../includes/item/item.php'; 
+            require_once __DIR__ . '/../templates/header.php';
+            require_once __DIR__ . '/../templates/edit_item/index.php';
+            require_once __DIR__ . '/../templates/footer.php';
+            break;
+
+        case 'deconnexion':
+            session_destroy();
+            header('Location: /routeur.php?action=auth');
+            exit();
+
         default:
+            header('Location: /routeur.php?action=auth');
+            exit();
     }
 }
-
-

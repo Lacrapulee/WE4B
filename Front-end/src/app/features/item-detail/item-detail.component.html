@@ -50,6 +50,10 @@
           
           <h1 class="text-3xl font-black text-gray-900 leading-tight">{{ item.titre }}</h1>
           <p class="mt-4 text-4xl font-bold text-blue-600">{{ item.prix | number:'1.2-2':'fr-FR' }} €</p>
+          <p *ngIf="item.ville_nom" class="mt-2 text-gray-500 text-sm font-medium flex items-center gap-1">
+            <i class="fa-solid fa-location-dot text-blue-400"></i>
+            {{ item.ville_nom }}
+          </p>
           
           <div class="mt-8 flex flex-col gap-3">
             <ng-container *ngIf="!isOwner">

@@ -163,7 +163,11 @@ function getAnnonceRechercheAvancee($pdo, $filters = []) {
  */
 function getAnnonceById($pdo, $id) {
     $stmt = $pdo->prepare(
-        "SELECT a.*, u.id AS vendeur_id, c.nom AS categorie_nom, u.nom AS vendeur_nom, u.prenom AS vendeur_prenom, u.email AS vendeur_email, u.telephone AS vendeur_telephone
+        "SELECT a.id, a.titre, a.description, a.prix, a.statut, a.created_at,
+                a.categorie_id, a.vendeur_id, a.ville_nom,
+                c.nom AS categorie_nom,
+                u.id AS vendeur_id, u.nom AS vendeur_nom, u.prenom AS vendeur_prenom,
+                u.email AS vendeur_email, u.telephone AS vendeur_telephone
          FROM articles a
          LEFT JOIN categories c ON c.id = a.categorie_id
          LEFT JOIN users u ON u.id = a.vendeur_id

@@ -40,6 +40,3 @@ if (empty($email) || empty($password)) {
         $erreurs = "Erreur SQL : " . $e->getMessage();
     }
 }
-
-// On laisse le fichier se terminer naturellement.
-// Le routeur va reprendre la main et faire sa redirection.

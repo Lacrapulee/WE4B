@@ -30,7 +30,11 @@ function isFavoris($pdo, $user_id, $article_id) {
  */
 function getFavorisUtilisateur($pdo, $user_id) {
     $stmt = $pdo->prepare(
-        "SELECT a.*, c.nom as categorie_nom, u.nom as vendeur_nom, u.prenom as vendeur_prenom, f.ajoute_le
+        "SELECT a.id, a.titre, a.description, a.prix, a.statut, a.created_at,
+                a.categorie_id, a.vendeur_id, a.ville_nom,
+                c.nom as categorie_nom,
+                u.nom as vendeur_nom, u.prenom as vendeur_prenom,
+                f.ajoute_le
          FROM favoris f
          INNER JOIN articles a ON f.article_id = a.id
          LEFT JOIN categories c ON a.categorie_id = c.id

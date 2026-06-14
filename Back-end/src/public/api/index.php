@@ -94,8 +94,7 @@ switch ($method) {
                 echo json_encode($response);
                 break;
 
-           case 'item':
-                
+           case 'items':
                 require_once __DIR__ . '/../../includes/item/item.php';
                 $message = $errorMessage ?? 'Récupération réussie';
                 $response = [
@@ -117,13 +116,12 @@ switch ($method) {
                 break;
 
             case 'favoris':
-                $path = __DIR__ . '/../../includes/favoris/favoris.php';
+                $path = __DIR__ . '/../../includes/favoris/favoris.php';  // ← ligne manquante
                 if (!file_exists($path)) {
                     echo json_encode(['error' => 'fichier introuvable: ' . $path]);
                     break;
                 }
                 require_once $path;
-                
                 
                 $favorisClean = array_map(function($item) {
                     unset($item['coordonnees']);
@@ -131,8 +129,11 @@ switch ($method) {
                 }, $favoris ?? []);
                 
                 echo json_encode([
-                    'favoris' => $favorisClean,
-                    'images'  => $images ?? []
+                    'result' => [
+                        'favoris' => $favorisClean,
+                        'images'  => $images ?? []
+                    ],
+                    'message' => 'Récupération réussie'
                 ]);
                 break;
 
@@ -149,14 +150,14 @@ switch ($method) {
             case 'mes_commandes':
                 require_once __DIR__ . '/../../includes/mes_commandes/mes_commandes.php';
                 $response = [
-                    'result'  => $results ?? [],
+                    'result'  => [
+                        'commandes' => $commandes ?? [],
+                        'images' => $imagesByCommande ?? []
+                    ],
                     'message' => 'Récupération réussie'
                 ];
                 http_response_code(200);
-                echo json_encode([
-                    'commandes' => $commandes ?? [],
-                    'images' => $imagesByCommande ?? []
-                ]);
+                echo json_encode($response);
                 break;
 
             case 'paiement':
@@ -230,15 +231,16 @@ switch ($method) {
                 break;
 
             case 'favoris':
-                $_POST['article_id'] = $inputData['article_id'] ?? null;
-                $_POST['user_id'] = $inputData['user_id'] ?? null;
-                include __DIR__ . '/../../includes/add_Favoris/add_Favoris.php'; 
-                
-                echo json_encode([
-                    'errors' => $error ?? null, 
-                    'message' => $message ?? ''
-                ]);
-                break;
+            $_POST['article_id'] = $inputData['article_id'] ?? null;
+            $_POST['user_id'] = $inputData['user_id'] ?? null;
+            include __DIR__ . '/../../includes/add_Favoris/add_Favoris.php'; 
+            
+            echo json_encode([
+                'success' => $result === true,  // ← manquant !
+                'errors' => $error ?? null, 
+                'message' => $error ?? ''
+            ]);
+            break;
 
             case 'paiement':
                 $_POST = $inputData;
@@ -346,7 +348,7 @@ switch ($method) {
             case 'delete_item':
                 if($_SESSION['user_id'] != ($inputData['vendeur_id'] ?? 0)) {
                     http_response_code(403); 
-                    echo json_encode(['result' => null, 'message' => 'Vous n\'avez pas la permission de supprimer cet article']);
+                    echo json_encode(['success' => false, 'error' => 'Vous n\'avez pas la permission de supprimer cet article']);
                     include __DIR__ . '/save_log.php'; // On log l'erreur 403
                     exit();
                 }                
@@ -369,13 +371,12 @@ switch ($method) {
                 include __DIR__ . '/../../includes/delete_favoris/delete_favoris.php';
                 if (isset($result) && $result) {
                     http_response_code(200);
-                    echo json_encode(['result' => $result, 'message' => $error ?? 'Retiré des favoris']);
+                    echo json_encode(['success' => true, 'message' => 'Retiré des favoris']);
                 } else {
                     http_response_code(400);
-                    echo json_encode(['result' => null, 'message' => $error ?? 'Erreur lors de la suppression des favoris']);
+                    echo json_encode(['success' => false, 'message' => $error ?? 'Erreur lors de la suppression']);
                 }
                 break;
-
             default:
                 http_response_code(404);
                 echo json_encode(['error' => 'Endpoint DELETE introuvable']);

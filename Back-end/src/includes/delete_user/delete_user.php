@@ -28,14 +28,16 @@ if ($userIdToDelete && ((isset($_SESSION['is_admin']) && $_SESSION['is_admin'] =
         if ($_SESSION['user_id'] == $userIdToDelete) {
             session_destroy();
         }
-        
+        $result = true;
         exit();
 
     } catch (PDOException $e) {
-        die("Erreur lors de la suppression du compte : " . $e->getMessage());
+        $error = "Erreur lors de la suppression du compte : " . $e->getMessage();
+        die($error);
     }
 
 } else {
-    die("Action non autorisée.");
+    $error = "Action non autorisée.";
+    die($error);
 }
 ?>

@@ -30,6 +30,13 @@ if (!$product || $product['statut'] !== 'en_ligne') {
     } else {
         $isOwner = false;
     }
+    $results = [
+        'item' => $product ?? [],
+        'images'     => $allImages ?? ['default.png'],
+        'similarAds' => $similarAds ?? [],
+        'isOwner'    => (bool)$isOwner,
+        'isAdmin'    => (bool)$isAdmin
+    ];   
 }
 
 

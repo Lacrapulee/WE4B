@@ -70,3 +70,12 @@ $prenom = $user['prenom'];
 $telephone = $user['telephone'];
 $email = $user['email'];
 $adresse_postale = $user['adresse_postale'];
+
+// 6. Préparation des résultats pour l'API
+$results = [
+    'user' => $user ?? [],
+    'articles' => $articles ?? [],
+    'reviews'  => $reviews ?? [],
+    'isOwner'  => (bool)$is_owner,
+    'isAdmin'  => (bool)$isAdmin
+];

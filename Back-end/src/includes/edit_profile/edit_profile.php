@@ -4,6 +4,7 @@ require_once __DIR__ . '/../db.php';
 // Sécurité : Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../connexion');
+    http_response_code(403);
     exit;
 }
 
@@ -17,6 +18,7 @@ $error = null;
 if (!$isOwner && !$isAdmin) {
     // Redirection si l'utilisateur n'a pas le droit d'être ici
     header('Location: /routeur.php?action=user&id=' . $_SESSION['user_id']);
+    http_response_code(403);
     exit();
 }
 
@@ -32,10 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare("UPDATE users SET nom = ?, prenom = ?, email = ?, telephone = ?, adresse_postale = ? WHERE id = ?");
         if ($stmt->execute([$nom, $prenom, $email, $telephone, $adresse_postale, $user_id])) {
             $success = true;
+            http_response_code(200);
         } else {
+            http_response_code(500);
             $error = "Erreur lors de la mise à jour.";
         }
     } else {
+        http_response_code(400);
         $error = "Le nom et le prénom sont obligatoires.";
     }
     
@@ -44,4 +49,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // --- PARTIE 2 : RÉCUPÉRATION DES INFOS ACTUELLES ---
 $stmt = $pdo->prepare("SELECT nom, prenom, email, telephone, adresse_postale FROM users WHERE id = ?");
 $stmt->execute([$user_id]);
-$user = $stmt->fetch();
+$result = $stmt->fetch();

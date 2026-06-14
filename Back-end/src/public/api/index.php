@@ -116,11 +116,62 @@ switch ($method) {
                 break;
 
             case 'favoris':
-                require_once __DIR__ . '/../../includes/favoris/favoris.php';
-                $response = [
-                    'favoris' => $favoris ?? [],
+                $path = __DIR__ . '/../../includes/favoris/favoris.php';
+                if (!file_exists($path)) {
+                    echo json_encode(['error' => 'fichier introuvable: ' . $path]);
+                    break;
+                }
+                require_once $path;
+                
+                
+                $favorisClean = array_map(function($item) {
+                    unset($item['coordonnees']);
+                    return $item;
+                }, $favoris ?? []);
+                
+                echo json_encode([
+                    'favoris' => $favorisClean,
                     'images'  => $images ?? []
+                ]);
+                break;
+
+            case 'check_auth':
+                if (isset($_SESSION['user_id'])) {
+                    http_response_code(200);
+                    echo json_encode(['isLoggedIn' => true, 'user_id' => $_SESSION['user_id']]);
+                } else {
+                    http_response_code(200);
+                    echo json_encode(['isLoggedIn' => false]);
+                }
+                break;
+
+            case 'mes_commandes':
+                require_once __DIR__ . '/../../includes/mes_commandes/mes_commandes.php';
+                $response = [
+                    'result'  => $results ?? [],
+                    'message' => 'Récupération réussie'
                 ];
+                http_response_code(200);
+                echo json_encode([
+                    'commandes' => $commandes ?? [],
+                    'images' => $imagesByCommande ?? []
+                ]);
+                break;
+
+            case 'paiement':
+                $_GET['id'] = $_GET['id'] ?? null;
+                require_once __DIR__ . '/../../includes/paiement/paiement.php';
+                http_response_code(200);
+                // Supprimer le champ binaire non sérialisable
+                if (isset($viewData['product']['coordonnees'])) {
+                    unset($viewData['product']['coordonnees']);
+                }
+                echo json_encode($viewData);
+                break;
+
+            case 'logout':
+                session_unset();
+                session_destroy();
                 http_response_code(200);
                 echo json_encode(['success' => true, 'message' => 'Déconnecté']);
                 break;

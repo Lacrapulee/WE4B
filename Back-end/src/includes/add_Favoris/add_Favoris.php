@@ -9,12 +9,10 @@ $error = null;
 $user_id = $_SESSION['user_id'] ?? null;
 $article_id = $_POST['article_id'] ?? null;
 
-if ($article_id && $user_id) {
-
     if ($_SESSION['user_id'] == $_POST['user_id']) {
         $article_id = $_POST['article_id'];
         $user_id = $_POST['user_id'];
-
+        
         if (addFavoris($pdo, $user_id, $article_id)) {
             $result = true;
             $error = 'Article ajouté aux favoris';    

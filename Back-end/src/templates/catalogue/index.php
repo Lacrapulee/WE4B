@@ -9,7 +9,6 @@
 
 </head>
 <body class="bg-[#EDFCFD] flex flex-col min-h-screen">
-<?php include '../templates/header.php'; ?>
 
     <main class="max-w-7xl mx-auto px-4 py-8 w-full flex-grow">
     <!-- SECTION FILTRES -->

@@ -20,14 +20,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // 3. INCLUSIONS ET INITIALISATION
+require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../includes/db.php'; 
+require_once __DIR__ . '/../../includes/mongo.php';
+
+use MongoDB\BSON\UTCDateTime; // Import pour gérer les dates MongoDB
 
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
 $inputData = json_decode(file_get_contents('php://input'), true) ?? [];
 
 // 4. VÉRIFICATION DE L'AUTHENTIFICATION
-// Correction : 'user' et 'favoris' retirés car ils demandent une authentification
 $actionsPubliques = [
     'connexion',
     'inscription',
@@ -42,6 +45,8 @@ if (!in_array($action, $actionsPubliques)) {
             'success' => false, 
             'error' => 'Authentification requise. Veuillez vous connecter.'
         ]);
+        // --- LOG EN CAS D'ÉCHEC D'AUTHENTIFICATION ---
+        include __DIR__ . '/../../includes/save_log.php';
         exit(); 
     }
 }
@@ -150,7 +155,7 @@ switch ($method) {
                 echo json_encode([
                     'success' => empty($erreurs), 
                     'message' => $erreurs ?? 'Connexion réussie', 
-                    'user_id' => $_SESSION['user_id'] ?? null // Correction : évite le crash si la session n'est pas créée
+                    'user_id' => $_SESSION['user_id'] ?? null 
                 ]);
                 break;
 
@@ -187,7 +192,6 @@ switch ($method) {
                 $_POST['user_id'] = $inputData['user_id'] ?? null;
                 include __DIR__ . '/../../includes/add_Favoris/add_Favoris.php'; 
                 
-                // Correction : Le code HTTP et les en-têtes d'abord !
                 http_response_code(200);
                 echo json_encode([
                     'success' => empty($erreurs), 
@@ -208,6 +212,7 @@ switch ($method) {
                 if($_SESSION['user_id'] != ($inputData['id'] ?? 0) && !($_SESSION['is_admin'] ?? false)) {
                     http_response_code(403); 
                     echo json_encode(['success' => false, 'error' => 'Vous n\'avez pas la permission de modifier ce profil']);
+                    include __DIR__ . '/save_log.php'; // On log l'erreur 403
                     exit();
                 }
                 $_POST = $inputData; 
@@ -218,10 +223,10 @@ switch ($method) {
                 break;
 
             case 'edit_item':
-
                 if($_SESSION['user_id'] != ($inputData['vendeur_id'] ?? 0) && !($_SESSION['is_admin'] ?? false)) {
                     http_response_code(403); 
                     echo json_encode(['success' => false, 'error' => 'Vous n\'avez pas la permission de modifier cet article']);
+                    include __DIR__ . '/save_log.php'; // On log l'erreur 403
                     exit();
                 }
                 $_POST = $inputData;
@@ -229,7 +234,6 @@ switch ($method) {
                 http_response_code(200);
                 echo json_encode(['success' => true, 'message' => 'Article modifié']);
                 break;
-
 
             default:
                 http_response_code(404);
@@ -240,19 +244,20 @@ switch ($method) {
     case 'DELETE':
         switch ($action) {
             case 'delete_item':
-                    if($_SESSION['user_id'] != ($inputData['vendeur_id'] ?? 0)) {
-                        http_response_code(403); 
-                        echo json_encode(['success' => false, 'error' => 'Vous n\'avez pas la permission de supprimer cet article']);
-                        exit();
-                    }                
-                $_GET['id'] = $inputData['id'] ?? null; //id de l'article à supprimer
+                if($_SESSION['user_id'] != ($inputData['vendeur_id'] ?? 0)) {
+                    http_response_code(403); 
+                    echo json_encode(['success' => false, 'error' => 'Vous n\'avez pas la permission de supprimer cet article']);
+                    include __DIR__ . '/save_log.php'; // On log l'erreur 403
+                    exit();
+                }                
+                $_GET['id'] = $inputData['id'] ?? null; 
                 include __DIR__ . '/../../includes/delete_item/delete_item.php';
                 http_response_code(200);
                 echo json_encode(['success' => true, 'message' => 'Article supprimé']);
                 break;
 
             case 'delete_user':
-                $_GET['id'] = $inputData['id'] ?? null; //id de l'utilisateur à supprimer
+                $_GET['id'] = $inputData['id'] ?? null; 
                 include __DIR__ . '/../../includes/delete_user/delete_user.php';
                 http_response_code(200);
                 echo json_encode(['success' => true, 'message' => 'Compte supprimé']);
@@ -281,5 +286,10 @@ switch ($method) {
         echo json_encode(['error' => 'Méthode HTTP non supportée']);
         break;
 }
+
+// ==========================================
+// 5. ENREGISTREMENT DU LOG DANS MONGO DB
+// ==========================================
+include __DIR__ . '/../../includes/save_log.php';
 
 exit();

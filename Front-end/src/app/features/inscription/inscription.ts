@@ -49,7 +49,7 @@ export class Inscription {
 
     this.authService.register(this.formData).subscribe({
       next: (response) => {
-        if (response.success) {
+        if (response.result) {
           this.isSuccess = true;
           this.message = response.message || 'Inscription réussie ! Redirection...';
           setTimeout(() => {

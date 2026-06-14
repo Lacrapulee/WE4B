@@ -47,7 +47,3 @@ if (empty($email) || empty($password)) {
         $erreurs = "Erreur SQL : " . $e->getMessage();
     }
 }
-
-header('Content-Type: application/json');
-http_response_code(http_response_code() ?: 200);
-exit;

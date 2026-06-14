@@ -22,6 +22,6 @@ export class ArticleComponent {
   }
 
   isOwnItem() {
-    return this.userId !== null && String(this.userId) === this.item.vendeur_id;
+    return this.userId !== null && String(this.userId) === String(this.item.vendeur_id);
   }
 }

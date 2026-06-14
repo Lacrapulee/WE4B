@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from '../../core/api/auth.service';
+import { AuthService, AuthResponse } from '../../core/api/auth.service';
 
 @Component({
   selector: 'app-connexion',
@@ -30,9 +30,10 @@ export class Connexion {
 
     if (this.email && this.password) {
       this.authService.login({ email: this.email, password: this.password }).subscribe({
-        next: (response) => {
+        next: (response: AuthResponse) => {
           this.isLoading = false;
-          if (response.success) {
+          // FIX: le PHP retourne { result: user_id, message: '...' }, plus de champ 'success'
+          if (response.result) {
             this.router.navigate(['/catalogue']);
           } else {
             this.errorMessage = response.message || response.error || 'Erreur lors de la connexion.';
@@ -40,7 +41,7 @@ export class Connexion {
         },
         error: (err) => {
           this.isLoading = false;
-          this.errorMessage = err.error?.error || err.error?.message || 'Une erreur est survenue. Veuillez réessayer.';
+          this.errorMessage = err.error?.message || err.error?.error || 'Une erreur est survenue. Veuillez réessayer.';
           console.error('Login error', err);
         }
       });

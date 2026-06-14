@@ -9,13 +9,14 @@ $commandes = [];
 if ($userId) {
     try {
         $stmt = $pdo->prepare(
-            "SELECT v.*, a.titre, a.vendeur_id
-             FROM ventes v
-             JOIN articles a ON v.article_id = a.id
-             WHERE v.acheteur_id = ?
-             ORDER BY v.created_at DESC"
+            "SELECT v.*, a.titre, a.vendeur_id,
+            (SELECT COUNT(*) FROM avis av WHERE av.article_id = v.article_id AND av.expediteur_id = ?) as a_laisse_avis
+            FROM ventes v
+            JOIN articles a ON v.article_id = a.id
+            WHERE v.acheteur_id = ?
+            ORDER BY v.created_at DESC"
         );
-        $stmt->execute([$userId]);
+        $stmt->execute([$userId, $userId]);
         $commandes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($commandes)) {
@@ -48,7 +49,8 @@ if ($userId) {
             if ($userEmail) {
                 try {
                     $stmt = $pdo->prepare(
-                        "SELECT v.*, a.titre, a.vendeur_id
+                        "SELECT v.*, a.titre, a.vendeur_id,
+                         (SELECT COUNT(*) FROM avis av JOIN users u ON av.expediteur_id = u.id WHERE av.article_id = v.article_id AND u.email = v.acheteur_email) as a_laisse_avis
                          FROM ventes v
                          JOIN articles a ON v.article_id = a.id
                          WHERE v.acheteur_email = ?

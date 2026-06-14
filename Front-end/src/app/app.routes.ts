@@ -10,6 +10,7 @@ import { CommandesComponent } from './features/commandes/commandes';
 import { Connexion } from './features/connexion/connexion';
 import { Inscription } from './features/inscription/inscription';
 import { EditItemComponent } from './features/edit-item/edit-item.component';
+import { PaiementComponent } from './features/paiement/paiement.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'catalogue' },
@@ -20,6 +21,7 @@ export const routes: Routes = [
   { path: 'favoris', component: FavorisComponent, data: { title: 'Favoris', description: 'Retrouvez ici les annonces enregistrées.' } },
   { path: 'mes-commandes', component: CommandesComponent, data: { title: 'Mes commandes', description: 'Suivi des commandes passées.' } },
   { path: 'messages', component: MessagesComponent, data: { title: 'Messages', description: 'Messagerie intégrée de l’application.' } },
+  { path: 'paiement/:id', component: PaiementComponent, data: { title: 'Paiement', description: 'Paiement de l’article.' } },
   { path: 'login', component: Connexion, data: { title: 'Connexion', description: 'Page de connexion Angular.' } },
   { path: 'inscription', component: Inscription, data: { title: 'Inscription', description: 'Création de compte Angular.' } },
   { path: 'a-propos', component: PageComponent, data: { title: 'À propos', description: 'Présentation du projet et de son fonctionnement.' } },

@@ -17,3 +17,23 @@ $filters = [
 
 $results = getAnnonceRechercheAvancee($pdo, $filters);
 $categories = getCategories($pdo);
+
+if (!empty($results)) {
+    $articleIds = array_column($results, 'id');
+    $images = getImagesByAnnonceIds($pdo, $articleIds);
+    
+    $user_id = $_SESSION['user_id'] ?? null;
+    $favoris_ids = [];
+    if ($user_id) {
+        $inQuery = implode(',', array_map('intval', $articleIds));
+        $favoris_stmt = $pdo->prepare("SELECT article_id FROM favoris WHERE user_id = ? AND article_id IN ($inQuery)");        $favoris_stmt->execute([$user_id]);
+        $favoris_ids = $favoris_stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+    }
+
+    foreach ($results as &$article) {
+        $article['image'] = $images[$article['id']] ?? 'default.png';
+        $article['isFavoris'] = in_array($article['id'], $favoris_ids);
+    }
+    unset($article);
+}
+

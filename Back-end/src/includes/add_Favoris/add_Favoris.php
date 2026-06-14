@@ -1,16 +1,17 @@
 <?php 
 
-include __DIR__ . '../includes/favoris_function.php';
-include_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../favoris_functions.php';
+require_once __DIR__ . '/../db.php';
 
 $response = ['success' => false, 'message' => ''];
 $error = null;
 
-if (isset($_POST['article_id']) && isset($_POST['user_id'])) {
+$user_id = $_SESSION['user_id'] ?? null;
+$article_id = $_POST['article_id'] ?? null;
 
-    if ($_SESSION['user_id'] == $_POST['user_id']) {
-        $article_id = $_POST['article_id'];
-        $user_id = $_POST['user_id'];
+if ($article_id && $user_id) {
+
+    if ($_SESSION['user_id'] == $user_id) {
 
         if (addFavoris($pdo, $user_id, $article_id)) {
             $response['success'] = true;
@@ -26,6 +27,5 @@ if (isset($_POST['article_id']) && isset($_POST['user_id'])) {
     }
 
 }
-
 
 ?>

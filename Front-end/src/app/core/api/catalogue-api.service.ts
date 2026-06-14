@@ -63,8 +63,29 @@ export class CatalogueApiService {
 }
 
   getCommandes(): Observable<any[]> {
-    // Mocking for now
-    return of([]);
+    return this.http.get<any>(`${this.baseUrl}/mes_commandes`, { withCredentials: true }).pipe(
+      map(res => {
+        const commandes = res.commandes || [];
+        const images = res.images || {};
+        return commandes.map((cmd: any) => ({
+          ...cmd,
+          image: images[cmd.article_id] || 'default.png'
+        }));
+      })
+    );
+  }
+
+  markAsReceived(venteId: number): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/commande_recue`, { vente_id: venteId }, { withCredentials: true });
+  }
+
+  postReview(articleId: number, destId: number, note: number, commentaire: string): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/avis`, {
+      article_id: articleId,
+      destinataire_id: destId,
+      note,
+      commentaire
+    }, { withCredentials: true });
   }
 
   getMessages(): Observable<any[]> {

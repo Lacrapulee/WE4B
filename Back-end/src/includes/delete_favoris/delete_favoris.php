@@ -1,12 +1,13 @@
 <?php 
 
-include '../favoris_functions.php';
-include '../db.php';
-if (isset($_POST['id_user']) && isset($_POST['article_id'])) {
-    $id_user = $_POST['id_user'];
-    $id_favoris = $_POST['article_id'];
+require_once __DIR__ . '/../favoris_functions.php';
+require_once __DIR__ . '/../db.php';
 
-    $result = removeFavoris($pdo, $id_user, $id_favoris);
+$id_user = $_POST['id_user'] ?? $_SESSION['user_id'] ?? null;
+$id_favoris = $_POST['article_id'] ?? null;
 
-
+if ($id_user && $id_favoris) {
+    if ($_SESSION['user_id'] == $id_user) {
+        $result = removeFavoris($pdo, $id_user, $id_favoris);
+    }
 }

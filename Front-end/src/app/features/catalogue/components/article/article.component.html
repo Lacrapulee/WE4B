@@ -35,10 +35,9 @@
     </div>
   </div>
 
-  <app-favoris-button *ngIf="isLoggedIn"
+  <app-favoris-button *ngIf="isLoggedIn && !isOwnItem()"
                       class="absolute top-2 right-2 z-10"
                       [isFavoris]="item.isFavoris"
-                      [disabled]="isOwnItem()"
                       (toggle)="onToggleFavoris()"
                       aria-label="Ajouter aux favoris">
   </app-favoris-button>

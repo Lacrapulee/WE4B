@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="/assets/css/user.css">
 </head>
 <body>
-    <?php include __DIR__ . '/../../templates/header.php'; ?>
     <div class="profile-container">
         <?php if (isset($_GET['status']) && $_GET['status'] === 'success'): ?>
             <div class="alert alert-success" style="margin-bottom: 2rem; padding: 1rem; background: #dcfce7; border: 1px solid #86efac; border-radius: 8px; color: #166534; font-weight: 600;">

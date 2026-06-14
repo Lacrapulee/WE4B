@@ -34,8 +34,8 @@ if (!$product || $product['statut'] !== 'en_ligne') {
         'item' => $product ?? [],
         'images'     => $allImages ?? ['default.png'],
         'similarAds' => $similarAds ?? [],
-        'isOwner'    => (bool)$isOwner,
-        'isAdmin'    => (bool)$isAdmin
+        'isOwner'    => $isOwner,
+        'isAdmin'    => $isAdmin
     ];   
 }
 

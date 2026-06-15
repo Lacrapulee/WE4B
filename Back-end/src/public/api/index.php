@@ -177,7 +177,31 @@ switch ($method) {
                 http_response_code(200);
                 echo json_encode(['success' => true, 'message' => 'Déconnecté']);
                 break;
-                
+
+            case 'get_image':
+                $id = $GET['id'] ?? null;
+                if (!$id || !$imageCollection){
+                    http_response_code(404);
+                    echo json_decode(['error'=> 'Image introuvable']);
+                    break;
+                }
+            try {
+                //On récupère le document par son ObjectId
+                $image = $imageCollection->findOne(['_id' => new MongoDB\BSON\ObjectId($id)]);
+                if (!$image) {
+                    http_response_code(404);
+                    exit();
+                }
+                // On renvoie le binaire avec le bon type MIME
+                header("Content-Type: " . $image['mime_type']);
+                echo $image['data']->getData();
+                exit();
+            }    catch (Exception $e){
+                    http_response_code(500);
+                    exit();
+            }
+                break;
+
             default:
                 http_response_code(404);
                 echo json_encode(['error' => 'Endpoint GET introuvable']);
@@ -286,6 +310,44 @@ switch ($method) {
                 $stmt->execute([$article_id, $_SESSION['user_id'], $dest_id, $note, $commentaire]);
                 http_response_code(200);
                 echo json_encode(['success' => true, 'message' => 'Avis ajouté avec succès']);
+                break;
+
+            case 'upload_image':
+                if (!isset($_FILES['image']) || !$imageCollection) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Aucune image reçue']);
+                    break;
+                }
+
+                $file = $_FILES['image'];
+                if ($file['error'] !== UPLOAD_ERR_OK) {
+                    http_response_code(500);
+                    echo json_encode(['error' => 'Erreur lors de l\'upload']);
+                    break;
+                }
+
+                try {
+                    // Préparation du binaire pour MongoDB
+                    $binary = new MongoDB\BSON\Binary(file_get_contents($file['tmp_name']), MongoDB\BSON\Binary::TYPE_GENERIC);
+
+                    $insertResult = $imageCollection->insertOne([
+                        'filename'   => $file['name'],
+                        'mime_type'  => $file['type'],
+                        'size'       => $file['size'],
+                        'data'       => $binary,
+                        'uploaded_at'=> new MongoDB\BSON\UTCDateTime(),
+                        'user_id'    => $_SESSION['user_id'] ?? null
+                    ]);
+
+                    echo json_encode([
+                        'success' => true,
+                        'id'      => (string)$insertResult->getInsertedId(),
+                        'message' => 'Image stockée avec succès dans MongoDB'
+                    ]);
+                } catch (Exception $e) {
+                    http_response_code(500);
+                    echo json_encode(['error' => $e->getMessage()]);
+                }
                 break;
 
             default:

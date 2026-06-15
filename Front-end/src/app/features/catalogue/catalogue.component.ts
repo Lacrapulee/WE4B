@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ArticleComponent } from './components/article/article.component';
 import { CatalogueFilterComponent } from './components/catalogue-filter/catalogue-filter.component';
@@ -20,11 +20,13 @@ export class CatalogueComponent implements OnInit {
   items: CatalogueItem[] = [];
   isLoggedIn: boolean = false;
   userId: string | number | null = null;
+  initialFilters: any = {};
 
   constructor(
     private fb: FormBuilder,
     private api: CatalogueApiService,
-    private authService: AuthService
+    private authService: AuthService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -34,7 +36,11 @@ export class CatalogueComponent implements OnInit {
     });
 
     this.loadCategories();
-    this.applyFilters();
+    
+    this.route.queryParams.subscribe(params => {
+      this.initialFilters = { ...params };
+      this.applyFilters(this.initialFilters);
+    });
   }
 
   loadCategories() {

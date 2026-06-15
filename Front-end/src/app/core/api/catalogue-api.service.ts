@@ -115,4 +115,9 @@ export class CatalogueApiService {
       withCredentials: true
     }).pipe(map(response => response.result));
   }
+
+  editProfile(id: string, data: any): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}?action=edit_profile`, { id, ...data }, { withCredentials: true })
+      .pipe(map(response => response));
+  }
 }

@@ -40,8 +40,8 @@
       </div>
 
       <!-- Colonne de droite : Infos principales, Vendeur et actions -->
-      <div class="space-y-6">
-        <div class="rounded-2xl bg-white shadow-sm border p-6 md:p-8 sticky top-4">
+      <div class="space-y-6 sticky top-24 z-10">
+        <div class="rounded-2xl bg-white shadow-sm border p-6 md:p-8">
           <div class="flex items-center gap-2 mb-3">
             <span *ngIf="item.statut === 'en_ligne'" class="bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">En ligne</span>
             <!-- Fallback pour les autres statuts si nécessaire -->
@@ -79,20 +79,33 @@
         </div>
 
         <!-- Section Vendeur -->
-        <div *ngIf="vendeur" class="rounded-2xl bg-white shadow-sm border p-6">
-          <h2 class="text-lg font-bold mb-4 border-b pb-2">À propos du vendeur</h2>
+        <a *ngIf="vendeur" [routerLink]="['/user', item.vendeur_id]" class="block rounded-2xl bg-white shadow-sm border p-6 hover:shadow-md transition-shadow cursor-pointer">
+          <h2 class="text-lg font-bold mb-4 border-b pb-2 text-gray-900">À propos du vendeur</h2>
           <div class="flex items-center gap-4">
-            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 text-2xl font-bold shadow-inner">
+            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 text-2xl font-bold shadow-inner flex-shrink-0">
               {{ vendeur.prenom.charAt(0) | uppercase }}{{ vendeur.nom.charAt(0) | uppercase }}
             </div>
             <div>
-              <p class="font-bold text-lg text-gray-900">{{ vendeur.prenom }} {{ vendeur.nom }}</p>
-              <div class="flex items-center gap-2 mt-1">
-                <a [routerLink]="['/user', item.vendeur_id]" class="text-blue-600 text-sm font-medium hover:underline hover:text-blue-800">Voir les autres annonces</a>
+              <p class="font-bold text-lg text-gray-900 group-hover:text-blue-600 transition-colors">{{ vendeur.prenom }} {{ vendeur.nom }}</p>
+              
+              <!-- Avis -->
+              <div class="flex items-center gap-1 mt-1">
+                <ng-container *ngIf="reviewCount > 0">
+                  <i class="fa-solid fa-star text-yellow-400 text-sm"></i>
+                  <span class="font-bold text-gray-800 text-sm">{{ averageRating | number:'1.1-1' }}</span>
+                  <span class="text-gray-500 text-sm">({{ reviewCount }} avis)</span>
+                </ng-container>
+                <ng-container *ngIf="reviewCount === 0">
+                  <span class="text-gray-500 text-sm italic">Aucun avis pour le moment</span>
+                </ng-container>
+              </div>
+
+              <div class="mt-1">
+                <span class="text-blue-600 text-sm font-medium group-hover:underline">Voir le profil et les annonces</span>
               </div>
             </div>
           </div>
-        </div>
+        </a>
       </div>
     </div>
 

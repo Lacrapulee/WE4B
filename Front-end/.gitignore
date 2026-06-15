@@ -1,7 +1,6 @@
 # See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
-Back-end/src/public/assets/img
-
+/Back-end/src/public/assets/img
 # Compiled output
 /dist
 /tmp

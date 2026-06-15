@@ -15,6 +15,7 @@ export class ItemDetailComponent implements OnInit {
   images: string[] = [];
   similarAds: any[] = [];
   vendeur: any = null;
+  vendeurReviews: any[] = [];
   loading: boolean = true;
   isOwner: boolean = false;
   isDeleting: boolean = false;
@@ -36,6 +37,7 @@ export class ItemDetailComponent implements OnInit {
     this.loading = true;
     this.item = null;
     this.vendeur = null;
+    this.vendeurReviews = [];
     this.isOwner = false;
     
     this.api.getItem(id).subscribe({
@@ -60,6 +62,7 @@ export class ItemDetailComponent implements OnInit {
             next: (userData) => {
               if (userData && userData.user) {
                 this.vendeur = userData.user;
+                this.vendeurReviews = userData.reviews || [];
               }
             },
             error: (err) => console.error("Erreur chargement vendeur", err)
@@ -89,6 +92,16 @@ export class ItemDetailComponent implements OnInit {
     if (this.images.length > 0) {
       this.selectedImageIndex = (this.selectedImageIndex < this.images.length - 1) ? this.selectedImageIndex + 1 : 0;
     }
+  }
+
+  get reviewCount(): number {
+    return this.vendeurReviews.length;
+  }
+
+  get averageRating(): number {
+    if (this.reviewCount === 0) return 0;
+    const sum = this.vendeurReviews.reduce((acc, review) => acc + Number(review.note), 0);
+    return sum / this.reviewCount;
   }
 
   deleteItem() {

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 
@@ -9,7 +9,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
   templateUrl: './catalogue-filter.component.html',
   styleUrls: ['./catalogue-filter.component.css']
 })
-export class CatalogueFilterComponent implements OnInit {
+export class CatalogueFilterComponent implements OnInit, OnChanges {
   @Input() initial: any = {};
   @Input() categories: any[] = [];
   @Output() apply = new EventEmitter<any>();
@@ -28,6 +28,20 @@ export class CatalogueFilterComponent implements OnInit {
       prix_max: [this.initial.prix_max || ''],
       tri: [this.initial.tri || 'date_recent']
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['initial'] && this.filterForm) {
+      this.filterForm.patchValue({
+        search: this.initial.search || '',
+        categorie: this.initial.categorie || '',
+        ville: this.initial.ville || '',
+        distance: this.initial.distance || '',
+        prix_min: this.initial.prix_min || '',
+        prix_max: this.initial.prix_max || '',
+        tri: this.initial.tri || 'date_recent'
+      });
+    }
   }
 
   onSubmit() {

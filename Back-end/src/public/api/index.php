@@ -37,7 +37,11 @@ $actionsPubliques = [
     'connexion',
     'inscription',
     'catalogue',
-    'item'
+    'item',
+    'items',
+    'user',
+    'get_image',
+    'check_auth'
 ];
 
 if (!in_array($action, $actionsPubliques)) {
@@ -359,9 +363,11 @@ switch ($method) {
     case 'PUT':
         switch ($action) {
             case 'edit_profile':
-                $_POST = $inputData; 
+                $_POST = $inputData;
+                $_GET['id'] = $inputData['id'] ?? ($_GET['id'] ?? null);
+                $_SERVER['REQUEST_METHOD'] = 'POST';
                 include __DIR__ . '/../../includes/edit_profile/edit_profile.php'; 
-                echo json_encode(['result' => $result, 'message' => $error ?? 'Profil mis à jour avec succès']);
+                echo json_encode(['success' => $success, 'result' => $result, 'message' => $error ?? 'Profil mis à jour avec succès']);
                 break;
 
             case 'edit_item':

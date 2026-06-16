@@ -21,7 +21,7 @@ export class CommandesComponent implements OnInit {
   submittingReview = false;
   reviewError: string | null = null;
 
-  constructor(private api: CatalogueApiService) {}
+  constructor(public api: CatalogueApiService) {}
 
   ngOnInit(): void {
     this.loadCommandes();

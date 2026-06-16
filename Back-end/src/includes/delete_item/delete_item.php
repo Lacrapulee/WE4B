@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../mongo.php';
+
 $itemIdToDelete = $_GET['id'] ?? null;
 if (!isset($_SESSION['user_id'])) {
     die("Action non autorisée.");
@@ -21,11 +23,26 @@ if ($_SESSION['is_admin'] == 1) {
 if ($itemIdToDelete) {
     
     try {
+        // 1. Récupérer les IDs Mongo des images associées
+        $stmtImg = $pdo->prepare("SELECT url_image FROM article_images WHERE article_id = ?");
+        $stmtImg->execute([$itemIdToDelete]);
+        $images = $stmtImg->fetchAll(PDO::FETCH_COLUMN);
+
+        // 2. Supprimer les images de MongoDB
+        if (!empty($images) && $imageCollection) {
+            foreach ($images as $imgId) {
+                if (preg_match('/^[0-9a-fA-F]{24}$/', $imgId)) {
+                    $imageCollection->deleteOne(['_id' => new MongoDB\BSON\ObjectId($imgId)]);
+                }
+            }
+        }
+
+        // 3. Supprimer l'article de MySQL (CASCADE supprimera les lignes dans article_images)
         $stmt = $pdo->prepare("DELETE FROM articles WHERE id = ?");
         $stmt->execute([$itemIdToDelete]);
 
 
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         $error = "Erreur lors de la suppression de l'annonce : " . $e->getMessage();
         die($error);
     }

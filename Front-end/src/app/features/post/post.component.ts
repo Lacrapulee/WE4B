@@ -4,6 +4,8 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router } from '@angular/router';
 import { CatalogueApiService } from '../../core/api/catalogue-api.service';
 import { CatalogueCategory } from '../../core/models/catalogue.models';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-post',
@@ -53,33 +55,56 @@ export class PostComponent implements OnInit {
     if (this.postForm.valid && this.selectedFiles.length > 0) {
       this.isLoading = true;
       this.errorMessage = '';
-      const formData = new FormData();
       
-      // Append form fields
-      Object.keys(this.postForm.value).forEach(key => {
-        formData.append(key, this.postForm.value[key]);
-      });
+      const uploadObservables = this.selectedFiles.map(file => 
+        this.api.uploadImage(file).pipe(
+          catchError(err => {
+            console.error('Erreur upload image', err);
+            return of(null);
+          })
+        )
+      );
 
-      // Append files
-      this.selectedFiles.forEach((file) => {
-        formData.append('ma_super_image[]', file);
-      });
+      forkJoin(uploadObservables).subscribe(results => {
+        const successfulUploads = results.filter(res => res && res.success);
+        const imageIds = successfulUploads.map(res => res.id);
 
-      this.api.postItem(formData).subscribe({
-        next: (response) => {
+        if (imageIds.length === 0) {
           this.isLoading = false;
-          console.log('Annonce publiée avec succès', response);
-          if (response.success && response.article_id) {
-            this.router.navigate(['/item', response.article_id]);
-          } else {
-            this.router.navigate(['/catalogue']);
-          }
-        },
-        error: (error) => {
-          this.isLoading = false;
-          console.error('Erreur lors de la publication', error);
-          this.errorMessage = error.error?.message || error.error?.errors?.[0] || 'Une erreur est survenue lors de la publication.';
+          this.errorMessage = 'Erreur lors du téléchargement des images.';
+          return;
         }
+
+        const formData = new FormData();
+        
+        // Append form fields
+        Object.keys(this.postForm.value).forEach(key => {
+          formData.append(key, this.postForm.value[key]);
+        });
+
+        // Append image IDs
+        imageIds.forEach((id) => {
+          formData.append('images[]', id);
+        });
+
+        this.api.postItem(formData).subscribe({
+          next: (response) => {
+            this.isLoading = false;
+            console.log('Annonce publiée avec succès', response);
+            if (response && response.article_id) {
+              this.router.navigate(['/item', response.article_id]);
+            } else if (response) {
+              this.router.navigate(['/item', response]); // L'API renvoie l'ID directement dans result parfois
+            } else {
+              this.router.navigate(['/catalogue']);
+            }
+          },
+          error: (error) => {
+            this.isLoading = false;
+            console.error('Erreur lors de la publication', error);
+            this.errorMessage = error.error?.message || error.error?.errors?.[0] || 'Une erreur est survenue lors de la publication.';
+          }
+        });
       });
     } else {
       this.postForm.markAllAsTouched();

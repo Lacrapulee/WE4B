@@ -26,7 +26,8 @@ export class PaiementComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    public api: CatalogueApiService
   ) {}
 
   ngOnInit(): void {

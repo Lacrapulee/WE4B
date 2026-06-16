@@ -43,7 +43,7 @@ foreach ($articles as &$article) {
     $stmt = $pdo->prepare("SELECT url_image FROM article_images WHERE article_id = ? AND est_principale = 1 LIMIT 1");
     $stmt->execute([$article['id']]);
     $image = $stmt->fetch();
-    $article['image'] = $image ? $image['url_image'] : 'default.png';
+    $article['image'] = $image ? $image['url_image'] : null;
 }
 
 // 4. Récupération des avis

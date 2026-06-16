@@ -119,8 +119,7 @@ INSERT INTO articles (vendeur_id, categorie_id, titre, description, prix, statut
 -- 4. IMAGES
 -- ==========================================================
 
-INSERT INTO article_images (article_id, url_image, est_principale)
-SELECT id, 'default.png', 1 FROM articles;
+-- Removed default.png inserts as images are now stored in MongoDB
 
 -- ==========================================================
 -- 5. AVIS

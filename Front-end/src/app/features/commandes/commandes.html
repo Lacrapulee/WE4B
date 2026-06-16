@@ -13,7 +13,7 @@
   <div *ngIf="!loading && commandes.length > 0" class="flex flex-col gap-6">
     <div *ngFor="let cmd of commandes" class="bg-white border rounded-lg shadow-sm p-4 md:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
       <div class="flex items-center gap-4">
-        <img [src]="'http://localhost:8000/assets/img/' + (cmd.image || 'default.png')" alt="Article" class="w-20 h-20 object-cover rounded-md">
+        <img [src]="api.getImageUrl(cmd.image)" alt="Article" class="w-20 h-20 object-cover rounded-md">
         <div>
           <h3 class="font-bold text-lg">Commande #{{ cmd.reference }}</h3>
           <p class="text-gray-600">{{ cmd.titre || 'Article inconnu' }}</p>

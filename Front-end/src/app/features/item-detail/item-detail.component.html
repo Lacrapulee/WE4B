@@ -10,7 +10,7 @@
       <div class="space-y-6">
         <div class="rounded-2xl overflow-hidden shadow-sm border bg-white relative">
           <img class="w-full object-cover aspect-[4/3] transition-opacity duration-300" 
-               [src]="backendUrl + '/assets/img/' + (images[selectedImageIndex] || 'default.png')" 
+               [src]="api.getImageUrl(images[selectedImageIndex] || null)" 
                [alt]="item.titre" />
           
           <!-- Navigation arrows -->
@@ -29,7 +29,7 @@
                class="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden cursor-pointer border-2 transition-all"
                [class.border-blue-500]="selectedImageIndex === i"
                [class.border-transparent]="selectedImageIndex !== i">
-            <img [src]="backendUrl + '/assets/img/' + img" [alt]="item.titre + ' ' + (i+1)" class="w-full h-full object-cover">
+            <img [src]="api.getImageUrl(img)" [alt]="item.titre + ' ' + (i+1)" class="w-full h-full object-cover">
           </div>
         </div>
         
@@ -114,7 +114,7 @@
       <h2 class="text-2xl font-bold mb-6 text-gray-900">Ces annonces pourraient vous intéresser</h2>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         <a *ngFor="let ad of similarAds" [routerLink]="['/item', ad.id]" class="group block bg-white rounded-xl shadow-sm border hover:shadow-lg transition-all duration-300 overflow-hidden">
-          <img [src]="backendUrl + '/assets/img/' + (ad.image || 'default.png')" [alt]="ad.titre" class="w-full h-40 md:h-48 object-cover group-hover:scale-105 transition-transform duration-500">
+          <img [src]="api.getImageUrl(ad.image || null)" [alt]="ad.titre" class="w-full h-40 md:h-48 object-cover group-hover:scale-105 transition-transform duration-500">
           <div class="p-4">
             <h3 class="font-semibold text-sm md:text-base text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors">{{ ad.titre }}</h3>
             <p class="font-bold text-blue-600 mt-2 text-lg">{{ ad.prix | number:'1.2-2':'fr-FR' }} €</p>

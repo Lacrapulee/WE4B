@@ -24,41 +24,32 @@ if (!$vendeur_id) {
     $ville_nom = $_POST['ville_nom'] ?? '';
     $code_postal = $_POST['code_postal'] ?? '';
     
-    $dossierCible = __DIR__ . "/../../public/assets/img/";
-    $autorise = ['jpg', 'jpeg', 'png', 'webp'];
+    $images = $_POST['images'] ?? [];
+    if (!is_array($images)) {
+        $images = [$images];
+    }
     
-    $nombreDeFichiers = isset($_FILES['ma_super_image']['name']) ? count((array)$_FILES['ma_super_image']['name']) : 0;
-    
-    if ($nombreDeFichiers === 0) {
-        $erreurs = "Aucune image sélectionnée.";
-        http_response_code(400);
+    if (empty($images)) {
+        // Au lieu de retourner une erreur, on récupère l'image par défaut depuis MongoDB
+        global $imageCollection;
+        if (isset($imageCollection)) {
+            $defaultImage = $imageCollection->findOne(['is_default' => true]);
+            if ($defaultImage) {
+                $images = [(string) $defaultImage['_id']];
+            } else {
+                $erreurs = "Aucune image sélectionnée et aucune image par défaut trouvée.";
+                http_response_code(400);
+            }
+        } else {
+            $erreurs = "Aucune image sélectionnée et impossible de se connecter à MongoDB.";
+            http_response_code(400);
+        }
     }
 
     // --- TRAITEMENT DES IMAGES ---
-    for ($i = 0; $i < $nombreDeFichiers; $i++) {
-        if ($_FILES['ma_super_image']['error'][$i] === UPLOAD_ERR_OK) {
-            $nomFichierOriginal = $_FILES['ma_super_image']['name'][$i];
-            $cheminTemporaire = $_FILES['ma_super_image']['tmp_name'][$i];
-            $infosFichier = pathinfo($nomFichierOriginal);
-            $extension = strtolower($infosFichier['extension']);
-            
-            if (in_array($extension, $autorise) && getimagesize($cheminTemporaire)) {
-                $nomSecurise = bin2hex(random_bytes(8)) . "." . $extension;
-                $cheminFinal = $dossierCible . $nomSecurise;
-
-                if (move_uploaded_file($cheminTemporaire, $cheminFinal)) {
-                    array_push($succes, [$nomSecurise, $i + 1]); // On stocke le nom de l'image et son ordre
-                } else {
-                    $erreurs = "Erreur serveur pour " . htmlspecialchars($nomFichierOriginal);
-                    http_response_code(500);
-                }
-            } else {
-                $erreurs = "Fichier invalide ou non autorisé : " . htmlspecialchars($nomFichierOriginal);
-                http_response_code(400);
-            }
-        } elseif ($_FILES['ma_super_image']['error'][$i] !== UPLOAD_ERR_NO_FILE) {
-            $erreurs = "Erreur de téléchargement pour l'image " . ($i + 1);
-            http_response_code(400);
+    foreach ($images as $i => $imageId) {
+        if (!empty($imageId)) {
+             array_push($succes, [$imageId, $i + 1]);
         }
     }
 
@@ -73,14 +64,9 @@ if (!$vendeur_id) {
         
         // On lie les images
         foreach ($succes as $image) {
-            addImage($pdo, $nouvelArticleId, $image[0], $image[1]); // $image[0] = nom de l'image, $image[1] = ordre
+            addImage($pdo, $nouvelArticleId, $image[0], $image[1]); // $image[0] = id de l'image (mongo), $image[1] = ordre
         }
         http_response_code(201);
-    } elseif (!empty($erreurs)) {
-        // Nettoyage des images orphelines si échec
-        foreach ($succes as $imageOrpheline) {
-            @unlink($dossierCible . $imageOrpheline[0]);
-        }
     }
 } else {
     http_response_code(405);

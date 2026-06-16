@@ -48,6 +48,25 @@ function getImagesByAnnonceIds($pdo, $articleIds) {
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $images[$row['article_id']] = $row['url_image'];
     }
+
+    // Assign default image for articles without an image or with 'default.png'
+    global $imageCollection;
+    $defaultImageId = null;
+    if (isset($imageCollection)) {
+        $defaultImage = $imageCollection->findOne(['is_default' => true]);
+        if ($defaultImage) {
+            $defaultImageId = (string) $defaultImage['_id'];
+        }
+    }
+
+    foreach ($articleIds as $id) {
+        if (!isset($images[$id]) && $defaultImageId) {
+            $images[$id] = $defaultImageId;
+        } elseif (isset($images[$id]) && $images[$id] === 'default.png' && $defaultImageId) {
+            $images[$id] = $defaultImageId;
+        }
+    }
+
     return $images;
 }
 
@@ -183,7 +202,29 @@ function getAnnonceById($pdo, $id) {
 function getAllImagesByAnnonceId($pdo, $id) {
     $stmt = $pdo->prepare("SELECT url_image FROM article_images WHERE article_id = ? ORDER BY ordre ASC");
     $stmt->execute([$id]);
-    return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $images = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    global $imageCollection;
+    $defaultImageId = null;
+    if (isset($imageCollection)) {
+        $defaultImage = $imageCollection->findOne(['is_default' => true]);
+        if ($defaultImage) {
+            $defaultImageId = (string) $defaultImage['_id'];
+        }
+    }
+
+    if (empty($images)) {
+        if ($defaultImageId) {
+            return [$defaultImageId];
+        }
+    } else {
+        foreach ($images as &$img) {
+            if ($img === 'default.png' && $defaultImageId) {
+                $img = $defaultImageId;
+            }
+        }
+    }
+    return $images;
 }
 
 /**
@@ -192,7 +233,23 @@ function getAllImagesByAnnonceId($pdo, $id) {
 function getImageByAnnonceId($pdo, $id) {
     $stmt = $pdo->prepare("SELECT url_image FROM article_images WHERE article_id = ? ORDER BY ordre ASC LIMIT 1");
     $stmt->execute([$id]);
-    return $stmt->fetchColumn();
+    $image = $stmt->fetchColumn();
+
+    global $imageCollection;
+    $defaultImageId = null;
+    if (isset($imageCollection)) {
+        $defaultImage = $imageCollection->findOne(['is_default' => true]);
+        if ($defaultImage) {
+            $defaultImageId = (string) $defaultImage['_id'];
+        }
+    }
+
+    if (!$image || $image === 'default.png') {
+        if ($defaultImageId) {
+            return $defaultImageId;
+        }
+    }
+    return $image;
 }
 
 /**

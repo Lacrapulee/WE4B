@@ -10,7 +10,7 @@ function buildPaymentPageViewData($pdo, $articleId, $requestMethod, $postData) {
         'successMessage' => null,
         'orderReference' => null,
         'product' => null,
-        'imageName' => 'default.png',
+        'imageName' => null,
         'priceLabel' => null,
         'buyerName' => '',
         'buyerEmail' => '',
@@ -45,7 +45,7 @@ function buildPaymentPageViewData($pdo, $articleId, $requestMethod, $postData) {
 
     $viewData['product'] = $product;
     $viewData['title'] = 'Paiement - ' . $product['titre'];
-    $viewData['imageName'] = getImageByAnnonceId($pdo, $product['id']) ?: 'default.png';
+    $viewData['imageName'] = getImageByAnnonceId($pdo, $product['id']) ?: null;
     $viewData['priceLabel'] = number_format((float) $product['prix'], 2, ',', ' ') . ' EUR';
 
     if ($requestMethod !== 'POST' || !isset($postData['confirm_payment'])) {

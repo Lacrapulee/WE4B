@@ -8,6 +8,13 @@ import { of, Observable } from 'rxjs';
 export class CatalogueApiService {
   private readonly baseUrl = 'http://localhost:8000/api/';
 
+  getImageUrl(image: string | null): string {
+    if (!image || image === 'default.png') {
+      return ''; // Ou une URL d'un avatar vide si nécessaire
+    }
+    return `${this.baseUrl}?action=get_image&id=${image}`;
+  }
+
   constructor(private http: HttpClient) {}
 
   getCategories() {
@@ -55,7 +62,7 @@ export class CatalogueApiService {
           const images = response.result.images ?? {};
           return items.map((item: any) => ({
             ...item,
-            image: images[item.id] ?? 'default.png',
+            image: images[item.id] ?? null,
             isFavoris: true
           }));
         }),
@@ -74,7 +81,7 @@ export class CatalogueApiService {
         const images = res.images || {};
         return commandes.map((cmd: any) => ({
           ...cmd,
-          image: images[cmd.article_id] || 'default.png'
+          image: images[cmd.article_id] || null
         }));
       })
     );
@@ -96,6 +103,12 @@ export class CatalogueApiService {
   getMessages(): Observable<any[]> {
     return this.http.get<any>(`${this.baseUrl}?action=messages`, { withCredentials: true })
       .pipe(map(response => response.result || []));
+  }
+
+  uploadImage(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('image', file);
+    return this.http.post<any>(`${this.baseUrl}?action=upload_image`, formData, { withCredentials: true });
   }
 
   postItem(formData: FormData): Observable<any> {

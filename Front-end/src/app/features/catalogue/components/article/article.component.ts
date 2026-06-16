@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FavorisButtonComponent } from '../../../../shared/ui/favoris-button/favoris-button.component';
 import { CatalogueItem } from '../../../../core/models/catalogue.models';
+import { CatalogueApiService } from '../../../../core/api/catalogue-api.service';
 
 @Component({
   selector: 'app-article',
@@ -16,6 +17,8 @@ export class ArticleComponent {
   @Input() isLoggedIn: boolean = false;
   @Input() userId: number | string | null = null;
   @Output() toggleFavoris = new EventEmitter<CatalogueItem>();
+
+  constructor(public api: CatalogueApiService) {}
 
   onToggleFavoris() {
     this.toggleFavoris.emit(this.item);

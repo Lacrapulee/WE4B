@@ -1,4 +1,6 @@
 <?php
+ini_set('display_errors', '0');
+error_reporting(0); // temporairement, juste pour debug — à retirer ensuite et logger proprement
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -48,7 +50,12 @@ try {
 
     // 6. EXÉCUTION
     $cursor = $collection->find($filter, $options);
-
+    // Marquer comme lus les messages reçus dans cette conversation
+    $collection->updateMany(
+        ['sender_id' => $with_user_id, 'receiver_id' => $current_user_id, 'lu' => ['$ne' => true]],
+        ['$set' => ['lu' => true]]
+    );
+    
     // 7. FORMATAGE DU FIL DE DISCUSSION
     $chat_history = [];
     foreach ($cursor as $document) {
@@ -57,13 +64,12 @@ try {
             'id1'         => $document['sender_id'],
             'id2'         => $document['receiver_id'],
             'content'     => $document['content'],
-            'date'        => $document['created_at']->toDateTime()->format('Y-m-d H:i:s'),
-            // Petit bonus pratique pour ton Front Angular :
-            // Savoir en un clin d'œil si c'est le user connecté qui a écrit (pour aligner le message à droite ou à gauche)
-            'is_me'       => ($document['sender_id'] === $current_user_id) 
+            'date'        => isset($document['created_at']) 
+                                ? $document['created_at']->toDateTime()->format('Y-m-d H:i:s') 
+                                : null,
+            'is_me'       => ((string)$document['sender_id'] === (string)$current_user_id)
         ];
     }
-
     // 8. RÉPONSE JSON
     $message = "Récupération réussie.";
 

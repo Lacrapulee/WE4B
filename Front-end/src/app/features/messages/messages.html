@@ -1,62 +1,44 @@
-<div class="container mx-auto p-4 h-[calc(100vh-100px)] max-w-6xl flex gap-4">
-  <!-- Sidebar -->
-  <div class="w-1/3 bg-white border rounded-lg shadow-sm flex flex-col h-full overflow-hidden">
-    <div class="p-4 border-b bg-gray-50">
-      <h2 class="font-bold text-lg">Boîte de réception</h2>
-    </div>
-    
-    <div *ngIf="loading" class="p-4 text-center text-gray-500">Chargement...</div>
-    <div *ngIf="!loading && conversations.length === 0" class="p-4 text-center text-gray-500">Aucun message.</div>
-
-    <div class="overflow-y-auto flex-1">
-      <button *ngFor="let conv of conversations" 
-              (click)="selectConversation(conv)"
-              [class.bg-blue-50]="selectedConversation === conv"
-              class="w-full text-left p-4 border-b hover:bg-gray-50 flex gap-3 items-center transition-colors">
-        <div class="w-12 h-12 bg-gray-200 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-gray-500">
-          {{ conv.interlocuteur_nom?.charAt(0) || 'U' }}
-        </div>
-        <div class="flex-1 min-w-0">
-          <div class="font-bold truncate">{{ conv.interlocuteur_nom || 'Utilisateur' }}</div>
-          <div class="text-sm text-gray-500 truncate">{{ conv.article_titre }}</div>
-        </div>
-      </button>
+<div class="messaging-layout">
+  <div class="conversations-sidebar" [class.hidden-mobile]="selectedConversation">
+    <h2>Discussions</h2>
+    <div *ngIf="loading" class="loading-text">Chargement des conversations...</div>
+    <div *ngIf="!loading" class="list-group">
+      <div *ngFor="let conv of conversations"
+           (click)="selectConversation(conv)"
+           [class.selected]="selectedConversation?.with_user_id === conv.with_user_id"
+           class="conversation-item">
+        <p class="conv-name">{{ conv.prenom }} {{ conv.nom }}</p>
+        <p class="last-message">{{ conv.last_message || 'Pas de message' }}</p>
+      </div>
+      <div *ngIf="!loading && conversations.length === 0" class="empty-list">
+        Aucune conversation pour le moment.
+      </div>
     </div>
   </div>
 
-  <!-- Main Chat Area -->
-  <div class="flex-1 bg-white border rounded-lg shadow-sm flex flex-col h-full overflow-hidden">
-    <div *ngIf="!selectedConversation" class="flex-1 flex items-center justify-center text-gray-500">
-      Sélectionnez une conversation pour afficher les messages.
+  <div class="chat-window" [class.hidden-mobile]="!selectedConversation">
+    <div *ngIf="!selectedConversation" class="empty-chat">
+      <p>Sélectionnez un message pour afficher l'historique complet.</p>
     </div>
 
-    <ng-container *ngIf="selectedConversation">
-      <div class="p-4 border-b bg-gray-50 flex items-center gap-3">
-        <div class="font-bold">{{ selectedConversation.interlocuteur_nom || 'Utilisateur' }}</div>
-        <span class="text-sm text-gray-500">- {{ selectedConversation.article_titre }}</span>
+    <div *ngIf="selectedConversation" class="chat-active">
+      <div class="chat-header">
+        <button class="back-btn" (click)="backToList()">&larr; Retour</button>
+        <span class="chat-title">{{ selectedConversation.prenom }} {{ selectedConversation.nom }}</span>
       </div>
 
-      <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-        <!-- Messages -->
-        <div *ngFor="let msg of selectedConversation.messages || []"
-             [ngClass]="{'self-end bg-blue-500 text-white': msg.sender_id === 'me', 'self-start bg-gray-100 text-gray-800': msg.sender_id !== 'me'}"
-             class="px-4 py-2 rounded-lg max-w-[70%]">
-          {{ msg.text }}
-          <div class="text-xs opacity-70 mt-1 text-right">{{ msg.created_at | date:'shortTime' }}</div>
+      <div class="chat-body">
+        <div *ngFor="let msg of activeChatMessages"
+             [ngClass]="{'my-message': msg.is_me, 'their-message': !msg.is_me}"
+             class="message-bubble">
+          <p>{{ msg.content }}</p>
         </div>
       </div>
 
-      <!-- Input -->
-      <div class="p-4 border-t bg-white flex gap-2">
-        <input type="text" class="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
-               placeholder="Écrivez votre message..." 
-               [(ngModel)]="newMessage" 
-               (keyup.enter)="sendMessage()">
-        <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold"
-                (click)="sendMessage()">
-          Envoyer
-        </button>
+      <div class="chat-footer">
+        <input type="text" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" placeholder="Votre message..." />
+        <button class="send-btn" (click)="sendMessage()">Envoyer</button>
       </div>
-    </ng-container>
+    </div>
   </div>
 </div>

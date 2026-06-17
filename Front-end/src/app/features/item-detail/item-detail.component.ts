@@ -22,7 +22,7 @@ export class ItemDetailComponent implements OnInit {
   selectedImageIndex: number = 0;
   readonly backendUrl = 'http://localhost:8000';
 
-  constructor(private route: ActivatedRoute, private router: Router, private api: CatalogueApiService) {}
+  constructor(private route: ActivatedRoute, private router: Router, public api: CatalogueApiService) {}
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
@@ -44,7 +44,7 @@ export class ItemDetailComponent implements OnInit {
       next: (data) => {
         this.itemData = data;
         this.item = data.item;
-        this.images = data.images || ['default.png'];
+        this.images = data.images || [];
         this.similarAds = data.similarAds || [];
         this.isOwner = !!data.isOwner;
         

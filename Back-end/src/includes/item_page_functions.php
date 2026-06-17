@@ -6,7 +6,7 @@ function buildItemPageViewData($pdo, $productId) {
         'errorMessage' => null,
         'title' => 'Article',
         'product' => null,
-        'imageName' => 'default.png',
+        'imageName' => null,
         'similarAds' => [],
         'sellerDisplayName' => 'Vendeur',
         'priceLabel' => null,
@@ -33,7 +33,7 @@ function buildItemPageViewData($pdo, $productId) {
     $similarImages = getImagesByAnnonceIds($pdo, $similarIds);
 
     foreach ($similarAds as &$similarAd) {
-        $similarAd['image_name'] = $similarImages[$similarAd['id']] ?? 'default.png';
+        $similarAd['image_name'] = $similarImages[$similarAd['id']] ?? null;
         $similarAd['price_label'] = number_format((float) $similarAd['prix'], 2, ',', ' ') . ' EUR';
     }
     unset($similarAd);
@@ -45,7 +45,7 @@ function buildItemPageViewData($pdo, $productId) {
 
     $viewData['product'] = $product;
     $viewData['title'] = $product['titre'];
-    $viewData['imageName'] = getImageByAnnonceId($pdo, $product['id']) ?: 'default.png';
+    $viewData['imageName'] = getImageByAnnonceId($pdo, $product['id']) ?: null;
     $viewData['similarAds'] = $similarAds;
     $viewData['sellerDisplayName'] = $sellerDisplayName;
     $viewData['priceLabel'] = number_format((float) $product['prix'], 2, ',', ' ') . ' EUR';

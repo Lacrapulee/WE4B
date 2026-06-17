@@ -192,7 +192,7 @@ switch ($method) {
                 break;
 
             case 'get_image':
-                $id = $GET['id'] ?? null;
+                $id = $_GET['id'] ?? null;
                 if (!$id || !$imageCollection){
                     http_response_code(404);
                     echo json_decode(['error'=> 'Image introuvable']);

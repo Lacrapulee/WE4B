@@ -12,9 +12,6 @@ if (!$product) {
 } else {
     $errorMessage = null;
     $allImages = getAllImagesByAnnonceId($pdo, $product['id']);
-    if (empty($allImages)) {
-        $allImages = ['default.png'];
-    }
     $similarAds = getAnnoncesSimilaires($pdo, $product['categorie_id'], $product['id']);
     $isOwner = isset($_SESSION['user_id']) && $_SESSION['user_id'] == $product['vendeur_id'];
 

@@ -38,7 +38,7 @@ if ($userId) {
         }
 
         foreach ($commandes as $commande) {
-            $imagesByCommande[$commande['article_id']] = getImageByAnnonceId($pdo, $commande['article_id']) ?: 'default.png';
+            $imagesByCommande[$commande['article_id']] = getImageByAnnonceId($pdo, $commande['article_id']) ?: null;
         }
     } catch (PDOException $e) {
         if ($e->getCode() === '42S22') {
@@ -60,7 +60,7 @@ if ($userId) {
                     $commandes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                     foreach ($commandes as $commande) {
-                        $imagesByCommande[$commande['article_id']] = getImageByAnnonceId($pdo, $commande['article_id']) ?: 'default.png';
+                        $imagesByCommande[$commande['article_id']] = getImageByAnnonceId($pdo, $commande['article_id']) ?: null;
                     }
                 } catch (PDOException $fallbackException) {
                     error_log('mes_commandes fallback failed: ' . $fallbackException->getMessage());

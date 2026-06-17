@@ -31,7 +31,7 @@ if (!empty($results)) {
     }
 
     foreach ($results as &$article) {
-        $article['image'] = $images[$article['id']] ?? 'default.png';
+        $article['image'] = $images[$article['id']] ?? null;
         $article['isFavoris'] = in_array($article['id'], $favoris_ids);
     }
     unset($article);

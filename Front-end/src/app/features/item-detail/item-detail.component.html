@@ -60,9 +60,11 @@
               <a *ngIf="item.statut === 'en_ligne'" [routerLink]="['/paiement', item.id]" class="w-full text-center block rounded-full bg-blue-600 py-3.5 text-white font-bold text-lg hover:bg-blue-700 transition-colors shadow-sm cursor-pointer">
                 Acheter cet article
               </a>
-              <button class="w-full rounded-full bg-white border-2 border-gray-200 py-3.5 text-gray-800 font-bold text-lg hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-sm">
-                Contacter le vendeur
-              </button>
+              <a [routerLink]="['/messages']" 
+              [queryParams]="{ contact: item.vendeur_id }" 
+              class="w-full block text-center rounded-full bg-white border-2 border-gray-200 py-3.5 text-gray-800 font-bold text-lg hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-sm cursor-pointer">
+              Contacter le vendeur
+            </a>
             </ng-container>
 
             <ng-container *ngIf="isOwner">

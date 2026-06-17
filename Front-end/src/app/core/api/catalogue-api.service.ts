@@ -46,7 +46,10 @@ export class CatalogueApiService {
       return this.http.request<any>('delete', `${this.baseUrl}?action=favoris`, { body: { article_id: articleId, user_id: userId }, withCredentials: true });
     }
   }
-
+  getUnreadCount(): Observable<number> {
+    return this.http.get<any>(`${this.baseUrl}?action=unread_count`, { withCredentials: true })
+      .pipe(map(response => response.result?.unread_count ?? 0));
+  }
   // FIX: /api/user/${id} → /api?action=user&id=${id}
   getUser(id: string) {
     return this.http.get<any>(`${this.baseUrl}?action=user&id=${id}`, { withCredentials: true })
@@ -99,12 +102,27 @@ export class CatalogueApiService {
       commentaire
     }, { withCredentials: true });
   }
-
-  getMessages(): Observable<any[]> {
-    return this.http.get<any>(`${this.baseUrl}?action=messages`, { withCredentials: true })
+  // Liste des conversations (colonne de gauche)
+  getConversations(): Observable<any[]> {
+    return this.http.get<any>(`${this.baseUrl}?action=conversations`, { withCredentials: true })
       .pipe(map(response => response.result || []));
   }
 
+  // Fil complet avec un interlocuteur précis (colonne de droite)
+  getMessages(withUserId: string | number): Observable<any[]> {
+    return this.http.get<any>(`${this.baseUrl}?action=messages&id=${withUserId}`, { withCredentials: true })
+      .pipe(map(response => response.result || []));
+  }
+
+  sendMessage(receiverId: string | number, message: string): Observable<any> {
+    // 💡 On envoie 'receiverId' pour correspondre exactement à ce qu'attend le PHP
+    return this.http.post<any>(
+      `${this.baseUrl}?action=post_message`, 
+      { receiverId, message }, 
+      { withCredentials: true }
+    ).pipe(map(response => response.result));
+  }  
+  
   uploadImage(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('image', file);

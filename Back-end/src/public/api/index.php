@@ -73,6 +73,15 @@ switch ($method) {
                 ];
                 echo json_encode($response);
                 break;
+            case 'unread_count':
+                require_once __DIR__ . '/../../includes/unread_count/unread_count.php';
+                $response = [
+                    'message' => $message ?? '',
+                    'result'  => ['unread_count' => $unread_count ?? 0]
+                ];
+                http_response_code(200);
+                echo json_encode($response);
+                break;
             case 'messages':
                 require_once __DIR__ . '/../../includes/messages/messages.php';
                 $response = [

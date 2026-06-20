@@ -1,0 +1,42 @@
+<div class="space-y-6">
+  <div class="bg-white rounded-2xl border shadow-sm p-6 md:p-8">
+    <div class="flex flex-col md:flex-row md:items-center justify-between border-b pb-4 mb-6">
+      <div>
+        <h2 class="text-xl font-bold text-gray-900">Analyse du trafic d'API</h2>
+        <p class="text-sm text-gray-500">Graphique dynamique généré par script Python à partir des journaux d'accès MongoDB et SQL.</p>
+      </div>
+      <button (click)="refreshChart()" 
+              [disabled]="loadingDashboard"
+              class="mt-4 md:mt-0 flex items-center justify-center gap-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:scale-[1.02] active:scale-[0.98]">
+        <i class="fa-solid fa-rotate" [class.animate-spin]="loadingDashboard"></i>
+        {{ loadingDashboard ? 'Génération...' : 'Mettre à jour' }}
+      </button>
+    </div>
+
+    <!-- Messages d'alertes -->
+    <div *ngIf="dashboardError" class="bg-red-50 text-red-800 p-4 rounded-xl border border-red-200 flex items-start gap-3 mb-6 animate-fade-in">
+      <i class="fa-solid fa-circle-exclamation mt-0.5 text-lg"></i>
+      <div>
+        <strong class="font-bold">Erreur de calcul :</strong>
+        <p class="text-sm mt-0.5">{{ dashboardError }}</p>
+      </div>
+    </div>
+
+    <div *ngIf="dashboardSuccess" class="bg-green-50 text-green-800 p-4 rounded-xl border border-green-200 flex items-start gap-3 mb-6 animate-fade-in">
+      <i class="fa-solid fa-circle-check mt-0.5 text-lg"></i>
+      <div class="text-sm font-medium">{{ dashboardSuccess }}</div>
+    </div>
+
+    <!-- Graphique -->
+    <div class="border rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center p-4 relative min-h-[400px]">
+      <div *ngIf="loadingDashboard" class="absolute inset-0 bg-white/70 backdrop-blur-xs flex flex-col items-center justify-center z-10">
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mb-4"></div>
+        <p class="text-gray-500 font-bold">Régénération du graphique en cours...</p>
+      </div>
+      <img [src]="'http://localhost:8000/img/chart_status.png?v=' + chartVersion" 
+           alt="Mosaïque de statistiques d'accès et ventes" 
+           class="w-full max-w-4xl h-auto rounded-lg shadow-sm border" 
+           (error)="dashboardError = 'Le graphique n\'a pas pu être chargé. Assurez-vous que le backend fonctionne.'"/>
+    </div>
+  </div>
+</div>

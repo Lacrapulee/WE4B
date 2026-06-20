@@ -1,0 +1,72 @@
+<div class="space-y-6">
+  <div class="bg-white rounded-2xl border shadow-sm p-6">
+    <!-- Filtres -->
+    <div class="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center">
+      <div class="relative flex-1 max-w-md">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </span>
+        <input type="text" 
+               [(ngModel)]="itemSearchQuery" 
+               placeholder="Rechercher par titre, vendeur, catégorie..." 
+               class="w-full pl-10 pr-4 py-2 border rounded-full text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"/>
+      </div>
+      <button (click)="onRefresh()" [disabled]="loading" class="flex items-center justify-center gap-2 rounded-full border px-4 py-2 hover:bg-gray-50 transition-colors text-sm font-semibold cursor-pointer">
+        <i class="fa-solid fa-rotate-right" [class.animate-spin]="loading"></i> Rafraîchir
+      </button>
+    </div>
+
+    <!-- Liste Tableau -->
+    <div class="overflow-x-auto rounded-xl border">
+      <table class="w-full text-left border-collapse text-sm">
+        <thead>
+          <tr class="bg-gray-50 border-b text-gray-600 uppercase font-semibold text-xs tracking-wider">
+            <th class="p-4">Article</th>
+            <th class="p-4">Vendeur</th>
+            <th class="p-4">Catégorie</th>
+            <th class="p-4">Prix</th>
+            <th class="p-4">Statut</th>
+            <th class="p-4">Date de dépôt</th>
+            <th class="p-4 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 text-gray-700">
+          <tr *ngFor="let item of filteredItems" class="hover:bg-gray-50/50 transition-colors">
+            <td class="p-4">
+              <div class="font-bold text-gray-900 hover:text-blue-600 cursor-pointer" [routerLink]="['/item', item.id]">{{ item.titre }}</div>
+              <div class="text-xs text-gray-400">ID: {{ item.id }}</div>
+            </td>
+            <td class="p-4 font-medium text-gray-600">
+              {{ item.vendeur_prenom }} {{ item.vendeur_nom }}
+            </td>
+            <td class="p-4 text-gray-500">{{ item.categorie_nom }}</td>
+            <td class="p-4 text-blue-600 font-bold">{{ item.prix | number:'1.2-2':'fr-FR' }} €</td>
+            <td class="p-4">
+              <span *ngIf="item.statut === 'en_ligne'" class="bg-green-100 text-green-800 text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">En ligne</span>
+              <span *ngIf="item.statut !== 'en_ligne'" class="bg-gray-100 text-gray-700 text-xs font-medium px-2 py-0.5 rounded-full uppercase tracking-wider">{{ item.statut }}</span>
+            </td>
+            <td class="p-4 text-gray-500">{{ item.created_at | date:'dd/MM/yyyy' }}</td>
+            <td class="p-4 text-right flex justify-end gap-1.5">
+              <a [routerLink]="['/item', item.id]" 
+                 title="Voir l'annonce" 
+                 class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 w-8 h-8 rounded-full inline-flex items-center justify-center transition-all cursor-pointer">
+                <i class="fa-solid fa-eye"></i>
+              </a>
+              <button (click)="onDelete(item)" 
+                      title="Supprimer définitivement l'annonce" 
+                      class="text-red-500 hover:text-red-700 hover:bg-red-50 w-8 h-8 rounded-full inline-flex items-center justify-center transition-all cursor-pointer">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredItems.length === 0 && !loading">
+            <td colspan="7" class="p-8 text-center text-gray-400 italic">Aucune annonce trouvée.</td>
+          </tr>
+          <tr *ngIf="loading">
+            <td colspan="7" class="p-8 text-center text-gray-500">Chargement de la liste des annonces...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

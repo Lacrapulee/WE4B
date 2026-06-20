@@ -15,8 +15,8 @@
 
       <div class="mt-4">
         <div class="mt-2 flex gap-2 items-center text-xs">
-          <span class="badge bg-gray-100 px-2 py-1 rounded">{{ item.ville_nom | uppercase }}</span>
-          <span class="badge bg-gray-100 px-2 py-1 rounded">{{ item.categorie_nom | uppercase }}</span>
+          <span *ngIf="item.ville_nom" class="badge bg-gray-100 px-2 py-1 rounded">{{ item.ville_nom | uppercase }}</span>
+          <span *ngIf="item.categorie_nom" class="badge bg-gray-100 px-2 py-1 rounded">{{ item.categorie_nom | uppercase }}</span>
         </div>
       </div>
     </div>

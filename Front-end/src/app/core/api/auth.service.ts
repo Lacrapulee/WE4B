@@ -12,6 +12,7 @@ export interface AuthState {
   isInitialized: boolean;
   isLoggedIn: boolean;
   user_id?: string | number | null;
+  is_admin?: boolean;
 }
 
 @Injectable({
@@ -20,7 +21,7 @@ export interface AuthState {
 export class AuthService {
   private readonly baseUrl = 'http://localhost:8000/api/';
   
-  private currentUserSubject = new BehaviorSubject<AuthState>({ isInitialized: false, isLoggedIn: false, user_id: null });
+  private currentUserSubject = new BehaviorSubject<AuthState>({ isInitialized: false, isLoggedIn: false, user_id: null, is_admin: false });
   public currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(private http: HttpClient) {
@@ -36,14 +37,15 @@ export class AuthService {
             this.currentUserSubject.next({
               isInitialized: true,
               isLoggedIn: true,
-              user_id: response.user_id
+              user_id: response.user_id,
+              is_admin: !!response.is_admin
             });
           } else {
-            this.currentUserSubject.next({ isInitialized: true, isLoggedIn: false, user_id: null });
+            this.currentUserSubject.next({ isInitialized: true, isLoggedIn: false, user_id: null, is_admin: false });
           }
         },
         error: () => {
-          this.currentUserSubject.next({ isInitialized: true, isLoggedIn: false, user_id: null });
+          this.currentUserSubject.next({ isInitialized: true, isLoggedIn: false, user_id: null, is_admin: false });
         }
       });
   }
@@ -54,7 +56,12 @@ export class AuthService {
     }).pipe(
       tap(response => {
         if (response.result) {
-          this.currentUserSubject.next({ isInitialized: true, isLoggedIn: true, user_id: response.result });
+          this.currentUserSubject.next({
+            isInitialized: true,
+            isLoggedIn: true,
+            user_id: response.result,
+            is_admin: !!(response as any).is_admin
+          });
         }
       })
     );
@@ -66,7 +73,12 @@ export class AuthService {
     }).pipe(
       tap(response => {
         if (response.result) {
-          this.currentUserSubject.next({ isInitialized: true, isLoggedIn: true, user_id: response.result });
+          this.currentUserSubject.next({
+            isInitialized: true,
+            isLoggedIn: true,
+            user_id: response.result,
+            is_admin: false
+          });
         }
       })
     );
@@ -77,7 +89,7 @@ export class AuthService {
       withCredentials: true
     }).pipe(
       tap(() => {
-        this.currentUserSubject.next({ isInitialized: true, isLoggedIn: false, user_id: null });
+        this.currentUserSubject.next({ isInitialized: true, isLoggedIn: false, user_id: null, is_admin: false });
       })
     );
   }

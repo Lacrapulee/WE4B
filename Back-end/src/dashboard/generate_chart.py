@@ -24,7 +24,7 @@ try:
         host="db",
         user="root",
         password="rootpassword", 
-        database="WE4ADB"  # Reprend exactement le nom de ton init.sql
+        database="WE4BDB"  # Reprend exactement le nom de ton init.sql
     )
 
     # A. Ventes par catégorie (Pour le Radar Chart)
@@ -53,7 +53,7 @@ try:
     # 2. CONNEXION ET TRAITEMENT MONGODB
     # ==========================================
     mongo_client = MongoClient("mongodb://root:mongopassword@mongodb:27017/")
-    db_mongo = mongo_client["WE4ADB_logs"]
+    db_mongo = mongo_client["WE4BDB"]
     collection = db_mongo["api_history"]
     mongo_data = list(collection.find({}, {"status_code": 1, "timestamp": 1, "action": 1, "payload": 1, "_id": 0}))
 

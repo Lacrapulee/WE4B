@@ -3,7 +3,7 @@
  * Configuration de la connexion à la base de données
  */
 $host = 'db';           
-$db   = 'WE4ADB';       
+$db   = 'WE4BDB';       
 $user = 'root';         
 $pass = 'rootpassword'; 
 $charset = 'utf8mb4';

@@ -1,0 +1,16 @@
+<div class="conversations-sidebar">
+  <h2>Discussions</h2>
+  <div *ngIf="loading" class="loading-text">Chargement des conversations...</div>
+  <div *ngIf="!loading" class="list-group">
+    <div *ngFor="let conv of conversations"
+         (click)="selectConversation(conv)"
+         [class.selected]="selectedConversation?.with_user_id === conv.with_user_id"
+         class="conversation-item">
+      <p class="conv-name">{{ conv.prenom }} {{ conv.nom }}</p>
+      <p class="last-message">{{ conv.last_message || 'Pas de message' }}</p>
+    </div>
+    <div *ngIf="!loading && conversations.length === 0" class="empty-list">
+      Aucune conversation pour le moment.
+    </div>
+  </div>
+</div>

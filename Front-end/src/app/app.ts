@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from './core/api/auth.service';
-import { CatalogueApiService } from './core/api/catalogue-api.service'; 
+import { CatalogueApiService } from './core/api/catalogue-api.service';
 import { Subscription } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 
@@ -16,7 +16,8 @@ import { FormsModule } from '@angular/forms';
 export class AppComponent implements OnInit, OnDestroy {
   isLoggedIn: boolean = false;
   userId: string | number | null = null;
-  unreadMessages: number = 0; // 👈 plus de valeur en dur
+  isAdmin: boolean = false;
+  unreadMessages: number = 0;
   searchQuery: string = '';
   private authSub: Subscription | undefined;
 
@@ -24,12 +25,13 @@ export class AppComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private router: Router,
     private api: CatalogueApiService // 👈 ajout
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.authSub = this.authService.currentUser$.subscribe(state => {
       this.isLoggedIn = state.isLoggedIn;
       this.userId = state.user_id || null;
+      this.isAdmin = !!state.is_admin;
 
       if (this.isLoggedIn) {
         this.loadUnreadCount();

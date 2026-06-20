@@ -17,9 +17,9 @@ if (!isset($inputData) || empty($inputData)) {
 }
 
 // Validation des données reçues
-$receiver_id = isset($inputData['receiverId']) ? $inputData['receiverId'] : null;
+$receiver_id = isset($inputData['receiverId']) ? intval($inputData['receiverId']) : null;
 $content = isset($inputData['message']) ? trim($inputData['message']) : null;
-$sender_id = $_SESSION['user_id']; // L'expéditeur (id1) est TOUJOURS l'user connecté
+$sender_id = intval($_SESSION['user_id']); // L'expéditeur (id1) est TOUJOURS l'user connecté
 
 if (!$receiver_id || empty($content)) {
     http_response_code(400);
@@ -29,7 +29,7 @@ if (!$receiver_id || empty($content)) {
 
 try {
     // 3. SÉLECTION DE LA COLLECTION
-    $collection = $mongoClient->WE4ADB->messages;
+    $collection = $mongoClient->WE4BDB->messages;
 
     // 4. PRÉPARATION DU DOCUMENT MONGO
     $newMessage = [

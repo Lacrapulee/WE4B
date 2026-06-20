@@ -13,6 +13,15 @@ if (!$product) {
     $errorMessage = null;
     $allImages = getAllImagesByAnnonceId($pdo, $product['id']);
     $similarAds = getAnnoncesSimilaires($pdo, $product['categorie_id'], $product['id']);
+    if (!empty($similarAds)) {
+        $similarIds = array_column($similarAds, 'id');
+        $similarImages = getImagesByAnnonceIds($pdo, $similarIds);
+        foreach ($similarAds as &$ad) {
+            $ad['image'] = $similarImages[$ad['id']] ?? null;
+        }
+        unset($ad);
+    }
+    
     $isOwner = isset($_SESSION['user_id']) && $_SESSION['user_id'] == $product['vendeur_id'];
 
     $results = [

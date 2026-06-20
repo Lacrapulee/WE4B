@@ -1,44 +1,17 @@
 <div class="messaging-layout">
-  <div class="conversations-sidebar" [class.hidden-mobile]="selectedConversation">
-    <h2>Discussions</h2>
-    <div *ngIf="loading" class="loading-text">Chargement des conversations...</div>
-    <div *ngIf="!loading" class="list-group">
-      <div *ngFor="let conv of conversations"
-           (click)="selectConversation(conv)"
-           [class.selected]="selectedConversation?.with_user_id === conv.with_user_id"
-           class="conversation-item">
-        <p class="conv-name">{{ conv.prenom }} {{ conv.nom }}</p>
-        <p class="last-message">{{ conv.last_message || 'Pas de message' }}</p>
-      </div>
-      <div *ngIf="!loading && conversations.length === 0" class="empty-list">
-        Aucune conversation pour le moment.
-      </div>
-    </div>
-  </div>
+  <app-conversation-sidebar
+    [conversations]="conversations"
+    [selectedConversation]="selectedConversation"
+    [loading]="loading"
+    (conversationSelected)="selectConversation($event)"
+    [class.hidden-mobile]="selectedConversation">
+  </app-conversation-sidebar>
 
-  <div class="chat-window" [class.hidden-mobile]="!selectedConversation">
-    <div *ngIf="!selectedConversation" class="empty-chat">
-      <p>Sélectionnez un message pour afficher l'historique complet.</p>
-    </div>
-
-    <div *ngIf="selectedConversation" class="chat-active">
-      <div class="chat-header">
-        <button class="back-btn" (click)="backToList()">&larr; Retour</button>
-        <span class="chat-title">{{ selectedConversation.prenom }} {{ selectedConversation.nom }}</span>
-      </div>
-
-      <div class="chat-body">
-        <div *ngFor="let msg of activeChatMessages"
-             [ngClass]="{'my-message': msg.is_me, 'their-message': !msg.is_me}"
-             class="message-bubble">
-          <p>{{ msg.content }}</p>
-        </div>
-      </div>
-
-      <div class="chat-footer">
-        <input type="text" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" placeholder="Votre message..." />
-        <button class="send-btn" (click)="sendMessage()">Envoyer</button>
-      </div>
-    </div>
-  </div>
+  <app-chat-window
+    [selectedConversation]="selectedConversation"
+    [activeChatMessages]="activeChatMessages"
+    (back)="backToList()"
+    (send)="sendMessage($event)"
+    [class.hidden-mobile]="!selectedConversation">
+  </app-chat-window>
 </div>

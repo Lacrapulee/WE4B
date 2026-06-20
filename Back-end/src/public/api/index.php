@@ -153,7 +153,11 @@ switch ($method) {
             case 'check_auth':
                 if (isset($_SESSION['user_id'])) {
                     http_response_code(200);
-                    echo json_encode(['isLoggedIn' => true, 'user_id' => $_SESSION['user_id']]);
+                    echo json_encode([
+                        'isLoggedIn' => true,
+                        'user_id' => $_SESSION['user_id'],
+                        'is_admin' => isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1
+                    ]);
                 } else {
                     http_response_code(200);
                     echo json_encode(['isLoggedIn' => false]);
@@ -215,6 +219,45 @@ switch ($method) {
             }
                 break;
 
+            case 'admin_users':
+                if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1) {
+                    http_response_code(403);
+                    echo json_encode(['success' => false, 'error' => 'Accès interdit.']);
+                    exit();
+                }
+                $stmt = $pdo->prepare("SELECT id, nom, prenom, email, telephone, is_admin, created_at FROM users WHERE email NOT LIKE 'supprime_%'");
+                $stmt->execute();
+                $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode(['success' => true, 'result' => $users]);
+                break;
+
+            case 'admin_items':
+                if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1) {
+                    http_response_code(403);
+                    echo json_encode(['success' => false, 'error' => 'Accès interdit.']);
+                    exit();
+                }
+                $stmt = $pdo->prepare("
+                    SELECT a.id, a.titre, a.prix, a.statut, a.created_at, c.nom AS categorie_nom, u.prenom AS vendeur_prenom, u.nom AS vendeur_nom 
+                    FROM articles a
+                    LEFT JOIN categories c ON a.categorie_id = c.id
+                    LEFT JOIN users u ON a.vendeur_id = u.id
+                    ORDER BY a.created_at DESC
+                ");
+                $stmt->execute();
+                $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                echo json_encode(['success' => true, 'result' => $items]);
+                break;
+
+            case 'unread_count':
+                require_once __DIR__ . '/../../includes/unread_count/unread_count.php';
+                echo json_encode([
+                    'success' => true,
+                    'result'  => $unread_count ?? 0,
+                    'message' => $message ?? ''
+                ]);
+                break;
+
             default:
                 http_response_code(404);
                 echo json_encode(['error' => 'Endpoint GET introuvable']);
@@ -240,7 +283,8 @@ switch ($method) {
                 
                 echo json_encode([
                     'message' => $erreurs ?? 'Connexion réussie', 
-                    'result' => $_SESSION['user_id'] ?? null 
+                    'result' => $_SESSION['user_id'] ?? null,
+                    'is_admin' => isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1
                 ]);
                 break;
 
@@ -363,6 +407,22 @@ switch ($method) {
                 }
                 break;
 
+            case 'admin_run_dashboard':
+                if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] != 1) {
+                    http_response_code(403);
+                    echo json_encode(['success' => false, 'error' => 'Accès interdit.']);
+                    exit();
+                }
+                $pythonScript = '/var/www/html/dashboard/generate_chart.py';
+                $output = shell_exec("python3 $pythonScript 2>&1");
+                $success = (trim($output) === "Success");
+                echo json_encode([
+                    'success' => $success,
+                    'message' => $success ? 'Dashboard mis à jour' : 'Erreur de génération du graphique',
+                    'error' => !$success ? $output : null
+                ]);
+                break;
+
             default:
                 http_response_code(404);
                 echo json_encode(['error' => 'Endpoint POST introuvable']);
@@ -380,11 +440,30 @@ switch ($method) {
                 break;
 
             case 'edit_item':
+                $productId = $_GET['id'] ?? null;
+                if (!$productId) {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => 'ID de l\'annonce manquant']);
+                    exit();
+                }
 
-                if($_SESSION['user_id'] != ($inputData['vendeur_id'] ?? 0) && !($_SESSION['is_admin'] ?? false)) {
+                $stmt = $pdo->prepare("SELECT * FROM articles WHERE id = ?");
+                $stmt->execute([$productId]);
+                $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if (!$product) {
+                    http_response_code(404);
+                    echo json_encode(['success' => false, 'message' => 'Annonce non trouvée']);
+                    exit();
+                }
+
+                $isOwner = (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $product['vendeur_id']);
+                $isAdmin = (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1);
+
+                if (!$isOwner && !$isAdmin) {
                     http_response_code(403); 
-                    echo json_encode(['result' => null, 'message' => 'Vous n\'avez pas la permission de modifier cet article']);
-                    include __DIR__ . '/save_log.php'; // On log l'erreur 403
+                    echo json_encode(['success' => false, 'message' => 'Vous n\'avez pas la permission de modifier cet article']);
+                    include __DIR__ . '/../../includes/save_log.php'; // On log l'erreur 403
                     exit();
                 }
 
@@ -398,7 +477,7 @@ switch ($method) {
                 $stmt->execute([$titre, $description, $prix, $categorie_id, $statut, $productId]);
 
                 http_response_code(200);
-                echo json_encode(['result' => $result, 'message' => $error ?? 'Article modifié']);
+                echo json_encode(['success' => true, 'message' => 'Article modifié avec succès']);
                 break;
 
             case 'commande_recue':
@@ -423,23 +502,32 @@ switch ($method) {
     case 'DELETE':
         switch ($action) {
             case 'delete_item':
-                if($_SESSION['user_id'] != ($inputData['vendeur_id'] ?? 0)) {
+                $_GET['id'] = $inputData['id'] ?? null;
+                $isAdmin = isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1;
+                $isOwner = false;
+                if ($_GET['id']) {
+                    $stmtOwner = $pdo->prepare("SELECT vendeur_id FROM articles WHERE id = ?");
+                    $stmtOwner->execute([$_GET['id']]);
+                    $vendeurId = $stmtOwner->fetchColumn();
+                    $isOwner = (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $vendeurId);
+                }
+                
+                if (!$isAdmin && !$isOwner) {
                     http_response_code(403); 
                     echo json_encode(['success' => false, 'error' => 'Vous n\'avez pas la permission de supprimer cet article']);
                     include __DIR__ . '/save_log.php'; // On log l'erreur 403
                     exit();
                 }                
-                $_GET['id'] = $inputData['id'] ?? null; 
                 include __DIR__ . '/../../includes/delete_item/delete_item.php';
                 http_response_code(200);
-                echo json_encode(['result' => $result, 'message' => $error ?? 'Article supprimé']);
+                echo json_encode(['success' => isset($result) && $result === true, 'result' => $result, 'message' => $error ?? 'Article supprimé']);
                 break;
 
             case 'delete_user':
                 $_GET['id'] = $inputData['id'] ?? null; 
                 include __DIR__ . '/../../includes/delete_user/delete_user.php';
                 http_response_code(200);
-                echo json_encode(['result' => $result, 'message' => $error ?? 'Compte supprimé']);
+                echo json_encode(['success' => isset($result) && $result === true, 'result' => $result, 'message' => $error ?? 'Compte supprimé']);
                 break;
 
             case 'favoris':

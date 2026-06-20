@@ -25,19 +25,16 @@ if ($userIdToDelete && ((isset($_SESSION['is_admin']) && $_SESSION['is_admin'] =
         $stmt->execute([$fakeEmail, $userIdToDelete]);
         
         //Détruire la session si c'est l'utilisateur lui-même
-        if ($_SESSION['user_id'] == $userIdToDelete) {
+        if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $userIdToDelete) {
             session_destroy();
         }
         $result = true;
-        exit();
 
     } catch (PDOException $e) {
         $error = "Erreur lors de la suppression du compte : " . $e->getMessage();
-        die($error);
     }
 
 } else {
     $error = "Action non autorisée.";
-    die($error);
 }
 ?>

@@ -37,6 +37,7 @@
   </div>
 
   <nav class="header-actions">
+    <a *ngIf="isAdmin" routerLink="/admin" class="font-bold text-red-600 hover:text-red-800 transition-colors">Admin</a>
     <a *ngIf="isLoggedIn" (click)="logout()" class="btn-secondary cursor-pointer">Déconnexion</a>
     
     <ng-container *ngIf="!isLoggedIn">
@@ -56,21 +57,13 @@
 
 <footer class="site-footer">
   <div class="footer-container">
-    <div class="footer-content">
-      <div class="footer-section">
-        <h3 class="footer-title">Navigation</h3>
-        <ul class="footer-links">
-          <li><a routerLink="/a-propos">À propos</a></li>
-          <li><a routerLink="/aide">Aide</a></li>
-          <li><a routerLink="/cgu">Conditions générales d'utilisation</a></li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="footer-bottom">
-      <p>
-        &copy; 2026 <strong>LeCoinCarré</strong> - Projet WE4B
-      </p>
-    </div>
+    <p class="footer-copyright">
+      &copy; 2026 <strong>LeCoinCarré</strong> - Projet WE4B
+    </p>
+    <ul class="footer-links">
+      <li><a routerLink="/a-propos">À propos</a></li>
+      <li><a routerLink="/aide">Aide</a></li>
+      <li><a routerLink="/cgu">Conditions générales d'utilisation</a></li>
+    </ul>
   </div>
 </footer>

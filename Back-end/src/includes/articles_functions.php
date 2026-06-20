@@ -15,11 +15,11 @@ function getAnnonceRecherche($pdo, $search) {
     $stmt = $pdo->prepare(
         "SELECT * FROM articles 
          WHERE statut = 'en_ligne' 
-         AND (titre LIKE ? OR description LIKE ?) 
+         AND titre LIKE ? 
          ORDER BY created_at DESC"
     );
     $searchTerm = "%" . $search . "%";
-    $stmt->execute([$searchTerm, $searchTerm]);
+    $stmt->execute([$searchTerm]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
@@ -85,7 +85,7 @@ function getAnnonceRechercheAvancee($pdo, $filters = []) {
     
     $params = [];
     if (!empty($filters['search'])) {
-        $sql .= " AND (a.titre LIKE :search OR a.description LIKE :search)";
+        $sql .= " AND a.titre LIKE :search";
         $params['search'] = '%' . $filters['search'] . '%';
     }
     if (!empty($filters['categorie'])) {

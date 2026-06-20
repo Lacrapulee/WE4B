@@ -48,7 +48,7 @@ export class CatalogueApiService {
   }
   getUnreadCount(): Observable<number> {
     return this.http.get<any>(`${this.baseUrl}?action=unread_count`, { withCredentials: true })
-      .pipe(map(response => response.result?.unread_count ?? 0));
+      .pipe(map(response => response.result !== undefined ? response.result : 0));
   }
   // FIX: /api/user/${id} → /api?action=user&id=${id}
   getUser(id: string) {
@@ -135,8 +135,7 @@ export class CatalogueApiService {
   }
 
   editItem(id: number, data: any): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}?action=edit_item&id=${id}`, data, { withCredentials: true })
-      .pipe(map(response => response.result));
+    return this.http.put<any>(`${this.baseUrl}?action=edit_item&id=${id}`, data, { withCredentials: true });
   }
 
   // FIX: id doit passer dans le body pour le DELETE (le PHP lit $inputData)
@@ -144,11 +143,30 @@ export class CatalogueApiService {
     return this.http.request<any>('delete', `${this.baseUrl}?action=delete_item`, {
       body: { id },
       withCredentials: true
-    }).pipe(map(response => response.result));
+    });
   }
 
   editProfile(id: string, data: any): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}?action=edit_profile`, { id, ...data }, { withCredentials: true })
       .pipe(map(response => response));
+  }
+
+  adminGetUsers(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}?action=admin_users`, { withCredentials: true });
+  }
+
+  adminGetItems(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}?action=admin_items`, { withCredentials: true });
+  }
+
+  adminRunDashboard(): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}?action=admin_run_dashboard`, {}, { withCredentials: true });
+  }
+
+  adminDeleteUser(id: string | number): Observable<any> {
+    return this.http.request<any>('delete', `${this.baseUrl}?action=delete_user`, {
+      body: { id },
+      withCredentials: true
+    });
   }
 }

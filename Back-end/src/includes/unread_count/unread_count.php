@@ -11,10 +11,10 @@ if (!isset($_SESSION['user_id'])){
     exit();
 }
 
-$current_user_id = $_SESSION['user_id'];
+$current_user_id = intval($_SESSION['user_id']);
 
 try {
-    $collection = $mongoClient->WE4ADB->messages;
+    $collection = $mongoClient->WE4BDB->messages;
 
     $unread_count = $collection->countDocuments([
         'receiver_id' => $current_user_id,

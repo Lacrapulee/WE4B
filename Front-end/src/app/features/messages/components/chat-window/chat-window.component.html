@@ -1,0 +1,25 @@
+<div class="chat-window">
+  <div *ngIf="!selectedConversation" class="empty-chat">
+    <p>Sélectionnez un message pour afficher l'historique complet.</p>
+  </div>
+
+  <div *ngIf="selectedConversation" class="chat-active">
+    <div class="chat-header">
+      <button class="back-btn" (click)="onBack()">&larr; Retour</button>
+      <span class="chat-title">{{ selectedConversation.prenom }} {{ selectedConversation.nom }}</span>
+    </div>
+
+    <div class="chat-body">
+      <div *ngFor="let msg of activeChatMessages"
+           [ngClass]="{'my-message': msg.is_me, 'their-message': !msg.is_me}"
+           class="message-bubble">
+        <p>{{ msg.content }}</p>
+      </div>
+    </div>
+
+    <div class="chat-footer">
+      <input type="text" [(ngModel)]="newMessage" (keyup.enter)="onSend()" placeholder="Votre message..." />
+      <button class="send-btn" (click)="onSend()">Envoyer</button>
+    </div>
+  </div>
+</div>

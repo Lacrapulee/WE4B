@@ -67,16 +67,31 @@
             </a>
             </ng-container>
 
-            <ng-container *ngIf="isOwner || isAdmin">
+            <ng-container *ngIf="isOwner">
               <div class="flex flex-col gap-3">
                 <a [routerLink]="['/edit-item', item.id]" class="w-full text-center rounded-full bg-orange-500 py-3.5 text-white font-bold text-lg hover:bg-orange-600 transition-colors shadow-sm inline-block cursor-pointer">
-                  {{ isAdmin && !isOwner ? 'Modifier l\'annonce (Admin)' : 'Modifier mon annonce' }}
+                  Modifier mon annonce
                 </a>
                 <button (click)="deleteItem()" [disabled]="isDeleting" class="w-full text-center rounded-full bg-red-600 py-3.5 text-white font-bold text-lg hover:bg-red-700 transition-colors shadow-sm inline-block cursor-pointer disabled:opacity-50">
-                  {{ isDeleting ? 'Suppression...' : (isAdmin && !isOwner ? 'Supprimer l\'annonce (Admin)' : 'Supprimer mon annonce') }}
+                  {{ isDeleting ? 'Suppression...' : 'Supprimer mon annonce' }}
                 </button>
               </div>
             </ng-container>
+          </div>
+        </div>
+
+        <!-- Section Modération (Admin) -->
+        <div *ngIf="isAdmin && !isOwner" class="rounded-2xl bg-red-50 border border-red-200 shadow-sm p-6">
+          <h3 class="text-red-800 font-bold text-sm uppercase tracking-wider mb-3">
+            <i class="fa-solid fa-shield-halved mr-1.5"></i>Modération Admin
+          </h3>
+          <div class="flex flex-col gap-3">
+            <a [routerLink]="['/edit-item', item.id]" class="w-full text-center rounded-full bg-orange-500 py-3 text-white font-bold hover:bg-orange-600 transition-colors shadow-sm inline-block cursor-pointer">
+              Modifier l'annonce (Admin)
+            </a>
+            <button (click)="deleteItem()" [disabled]="isDeleting" class="w-full text-center rounded-full bg-red-600 py-3 text-white font-bold hover:bg-red-700 transition-colors shadow-sm inline-block cursor-pointer disabled:opacity-50">
+              {{ isDeleting ? 'Suppression...' : 'Supprimer l\'annonce (Admin)' }}
+            </button>
           </div>
         </div>
 

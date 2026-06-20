@@ -17,8 +17,7 @@ export class AppComponent implements OnInit, OnDestroy {
   isLoggedIn: boolean = false;
   userId: string | number | null = null;
   isAdmin: boolean = false;
-  unreadMessages: number = 3;
-  unreadMessages: number = 0; // 👈 plus de valeur en dur
+  unreadMessages: number = 0;
   searchQuery: string = '';
   private authSub: Subscription | undefined;
 

@@ -11,7 +11,6 @@
       <a [routerLink]="['/user', userId]">Mes annonces</a>
       <a routerLink="/mes-commandes">Mes commandes</a>
       <a routerLink="/favoris">Favoris</a>
-      <a *ngIf="isAdmin" routerLink="/admin" class="font-bold text-red-600 hover:text-red-800 transition-colors border border-red-500 hover:border-red-700 px-2 py-0.5 rounded ml-4 inline-block">Admin</a>
       
       <a routerLink="/messages" style="position: relative;">
         Messages
@@ -38,6 +37,7 @@
   </div>
 
   <nav class="header-actions">
+    <a *ngIf="isAdmin" routerLink="/admin" class="font-bold text-red-600 hover:text-red-800 transition-colors">Admin</a>
     <a *ngIf="isLoggedIn" (click)="logout()" class="btn-secondary cursor-pointer">Déconnexion</a>
     
     <ng-container *ngIf="!isLoggedIn">
@@ -57,21 +57,13 @@
 
 <footer class="site-footer">
   <div class="footer-container">
-    <div class="footer-content">
-      <div class="footer-section">
-        <h3 class="footer-title">Navigation</h3>
-        <ul class="footer-links">
-          <li><a routerLink="/a-propos">À propos</a></li>
-          <li><a routerLink="/aide">Aide</a></li>
-          <li><a routerLink="/cgu">Conditions générales d'utilisation</a></li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="footer-bottom">
-      <p>
-        &copy; 2026 <strong>LeCoinCarré</strong> - Projet WE4B
-      </p>
-    </div>
+    <p class="footer-copyright">
+      &copy; 2026 <strong>LeCoinCarré</strong> - Projet WE4B
+    </p>
+    <ul class="footer-links">
+      <li><a routerLink="/a-propos">À propos</a></li>
+      <li><a routerLink="/aide">Aide</a></li>
+      <li><a routerLink="/cgu">Conditions générales d'utilisation</a></li>
+    </ul>
   </div>
 </footer>

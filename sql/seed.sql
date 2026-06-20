@@ -1,10 +1,10 @@
 -- ==========================================================
--- FICHIER DE SEEDING : seed.sql (CORRIGÉ)
--- Base de données : WE4ADB
+-- FICHIER DE SEEDING : seed.sql 
+-- Base de données : WE4BDB
 -- ==========================================================
 
 SET NAMES utf8mb4;
-USE WE4ADB;
+USE WE4BDB;
 
 -- ==========================================================
 -- 1. USERS

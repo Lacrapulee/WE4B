@@ -1,0 +1,58 @@
+<section class="max-w-6xl mx-auto px-4 py-8">
+  <!-- En-tête -->
+  <div class="mb-8 border-b pb-6">
+    <h1 class="text-3xl font-black text-gray-900 leading-tight">Panneau d'Administration</h1>
+    <p class="text-gray-500 mt-1 font-medium">Gérez la plateforme, les utilisateurs, les annonces et visualisez les statistiques système.</p>
+  </div>
+
+  <!-- Sélecteur d'onglets -->
+  <div class="flex border-b border-gray-200 mb-8 overflow-x-auto">
+    <button (click)="activeTab = 'dashboard'" 
+            [class.border-blue-600]="activeTab === 'dashboard'" 
+            [class.text-blue-600]="activeTab === 'dashboard'" 
+            [class.border-transparent]="activeTab !== 'dashboard'"
+            [class.text-gray-500]="activeTab !== 'dashboard'"
+            class="py-4 px-6 border-b-2 font-bold text-sm md:text-base whitespace-nowrap transition-all duration-200 hover:text-blue-700 cursor-pointer">
+      <i class="fa-solid fa-chart-line mr-2"></i>Dashboard Python
+    </button>
+    <button (click)="activeTab = 'users'" 
+            [class.border-blue-600]="activeTab === 'users'" 
+            [class.text-blue-600]="activeTab === 'users'" 
+            [class.border-transparent]="activeTab !== 'users'"
+            [class.text-gray-500]="activeTab !== 'users'"
+            class="py-4 px-6 border-b-2 font-bold text-sm md:text-base whitespace-nowrap transition-all duration-200 hover:text-blue-700 cursor-pointer">
+      <i class="fa-solid fa-users mr-2"></i>Utilisateurs ({{ users.length }})
+    </button>
+    <button (click)="activeTab = 'items'" 
+            [class.border-blue-600]="activeTab === 'items'" 
+            [class.text-blue-600]="activeTab === 'items'" 
+            [class.border-transparent]="activeTab !== 'items'"
+            [class.text-gray-500]="activeTab !== 'items'"
+            class="py-4 px-6 border-b-2 font-bold text-sm md:text-base whitespace-nowrap transition-all duration-200 hover:text-blue-700 cursor-pointer">
+      <i class="fa-solid fa-tags mr-2"></i>Annonces ({{ items.length }})
+    </button>
+  </div>
+
+  <!-- Contenu des onglets -->
+  
+  <!-- 1. DASHBOARD -->
+  <app-admin-dashboard *ngIf="activeTab === 'dashboard'"></app-admin-dashboard>
+
+  <!-- 2. GESTION DES UTILISATEURS -->
+  <app-admin-users
+    *ngIf="activeTab === 'users'"
+    [users]="users"
+    [loading]="loadingUsers"
+    (refresh)="loadUsers()"
+    (delete)="deleteUser($event)">
+  </app-admin-users>
+
+  <!-- 3. GESTION DES ANNONCES -->
+  <app-admin-items
+    *ngIf="activeTab === 'items'"
+    [items]="items"
+    [loading]="loadingItems"
+    (refresh)="loadItems()"
+    (delete)="deleteItem($event)">
+  </app-admin-items>
+</section>

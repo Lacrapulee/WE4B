@@ -48,7 +48,7 @@ export class CatalogueApiService {
   }
   getUnreadCount(): Observable<number> {
     return this.http.get<any>(`${this.baseUrl}?action=unread_count`, { withCredentials: true })
-      .pipe(map(response => response.result?.unread_count ?? 0));
+      .pipe(map(response => response.result !== undefined ? response.result : 0));
   }
   // FIX: /api/user/${id} → /api?action=user&id=${id}
   getUser(id: string) {
@@ -135,8 +135,7 @@ export class CatalogueApiService {
   }
 
   editItem(id: number, data: any): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}?action=edit_item&id=${id}`, data, { withCredentials: true })
-      .pipe(map(response => response.result));
+    return this.http.put<any>(`${this.baseUrl}?action=edit_item&id=${id}`, data, { withCredentials: true });
   }
 
   // FIX: id doit passer dans le body pour le DELETE (le PHP lit $inputData)

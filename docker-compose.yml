@@ -6,7 +6,7 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: WE4ADB
+      MYSQL_DATABASE: WE4BDB
     ports:
       - "3306:3306"
     volumes:

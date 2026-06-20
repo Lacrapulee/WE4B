@@ -11,8 +11,10 @@ import { Connexion } from './features/connexion/connexion';
 import { Inscription } from './features/inscription/inscription';
 import { EditItemComponent } from './features/edit-item/edit-item.component';
 import { PaiementComponent } from './features/paiement/paiement.component';
+import { AdminComponent } from './features/admin/admin.component';
 import { authGuard } from './core/guards/auth.guard';
 import { noAuthGuard } from './core/guards/no-auth.guard';
+import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'catalogue' },
@@ -30,5 +32,6 @@ export const routes: Routes = [
   { path: 'aide', component: PageComponent, data: { title: 'Aide', description: 'Réponses aux questions courantes.' } },
   { path: 'cgu', component: PageComponent, data: { title: 'Conditions générales d\'utilisation', description: 'Cadre légal et conditions d’utilisation.' } },
   { path: 'user/:id', component: ProfileComponent, canActivate: [authGuard], data: { title: 'Profil utilisateur', description: 'Tableau de bord du compte utilisateur.' } },
+  { path: 'admin', component: AdminComponent, canActivate: [adminGuard], data: { title: 'Administration', description: 'Portail d\'administration.' } },
   { path: '**', redirectTo: 'catalogue' }
 ];

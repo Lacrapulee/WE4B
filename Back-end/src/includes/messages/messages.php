@@ -16,8 +16,8 @@ if (!isset($_SESSION['user_id'])){
 
 // 2. RÉCUPÉRATION DE L'ID DE L'INTERLOCUTEUR (id2)
 // On peut le passer en paramètre GET classique dans l'URL : ?action=get_conversation&with_user=99
-$current_user_id = $_SESSION['user_id']; // id1
-$with_user_id = isset($_GET['id']) ? $_GET['id'] : null; // id2
+$current_user_id = intval($_SESSION['user_id']); // id1
+$with_user_id = isset($_GET['id']) ? intval($_GET['id']) : null; // id2
 
 if (!$with_user_id) {
     http_response_code(400);
@@ -27,7 +27,7 @@ if (!$with_user_id) {
 
 try {
     // 3. ACCÈS À LA COLLECTION
-    $collection = $mongoClient->WE4ADB->messages;
+    $collection = $mongoClient->WE4BDB->messages;
 
     // 4. FILTRE CROISÉ (A écrit à B OR B écrit à A)
     $filter = [

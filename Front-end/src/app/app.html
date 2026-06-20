@@ -11,6 +11,7 @@
       <a [routerLink]="['/user', userId]">Mes annonces</a>
       <a routerLink="/mes-commandes">Mes commandes</a>
       <a routerLink="/favoris">Favoris</a>
+      <a *ngIf="isAdmin" routerLink="/admin" class="font-bold text-red-600 hover:text-red-800 transition-colors border border-red-500 hover:border-red-700 px-2 py-0.5 rounded ml-4 inline-block">Admin</a>
       
       <a routerLink="/messages" style="position: relative;">
         Messages

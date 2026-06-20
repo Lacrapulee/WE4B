@@ -10,17 +10,17 @@ USE WE4ADB;
 -- 1. USERS
 -- ==========================================================
 
-INSERT INTO users (email, password, nom, prenom, telephone) VALUES
-('jean.dupont@gmail.com', 'hash123', 'Dupont', 'Jean', '0611223344'),
-('marie.curie@utbm.fr', 'hash123', 'Curie', 'Marie', '0655443322'),
-('lucas.bertrand@orange.fr', 'hash123', 'Bertrand', 'Lucas', '0788990011'),
-('sophie.fonfec@yahoo.fr', 'hash123', 'Fonfec', 'Sophie', '0600112233'),
-('admin.boutique@utbm.fr', 'hash123', 'Admin', 'Boutique', '0384001122'),
-('thomas.paris@gmail.com', 'hash123', 'Rousseau', 'Thomas', '0612345678'),
-('isabelle.brest@gmail.com', 'hash123', 'Lefevre', 'Isabelle', '0698765432'),
-('sebastien.mtp@gmail.com', 'hash123', 'Moreau', 'Sebastien', '0687654321'),
-('anne.lyon@gmail.com', 'hash123', 'Garneau', 'Anne', '0676543210'),
-('pierre.marseille@gmail.com', 'hash123', 'Blanc', 'Pierre', '0665432109');
+INSERT INTO users (email, password, nom, prenom, telephone, is_admin) VALUES
+('jean.dupont@gmail.com', 'hash123', 'Dupont', 'Jean', '0611223344', 0),
+('marie.curie@utbm.fr', 'hash123', 'Curie', 'Marie', '0655443322', 0),
+('lucas.bertrand@orange.fr', 'hash123', 'Bertrand', 'Lucas', '0788990011', 0),
+('sophie.fonfec@yahoo.fr', 'hash123', 'Fonfec', 'Sophie', '0600112233', 0),
+('admin.boutique@utbm.fr', '$2y$10$J8Hc3w6LRgkWr/ISvw2eyuj.6F2QaGyvA7cOuY5rulmWJSqaDaGnq', 'Admin', 'Boutique', '0384001122', 1),
+('thomas.paris@gmail.com', 'hash123', 'Rousseau', 'Thomas', '0612345678', 0),
+('isabelle.brest@gmail.com', 'hash123', 'Lefevre', 'Isabelle', '0698765432', 0),
+('sebastien.mtp@gmail.com', 'hash123', 'Moreau', 'Sebastien', '0687654321', 0),
+('anne.lyon@gmail.com', 'hash123', 'Garneau', 'Anne', '0676543210', 0),
+('pierre.marseille@gmail.com', 'hash123', 'Blanc', 'Pierre', '0665432109', 0);
 
 -- ==========================================================
 -- 2. CATEGORIES

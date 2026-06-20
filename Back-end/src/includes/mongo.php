@@ -12,7 +12,7 @@ try {
     $mongoClient = new Client("mongodb://root:mongopassword@mongodb:27017");
     
     // 3. Sélection de la base de données et de la collection
-    $db = $mongoClient->selectDatabase('WE4ADB_logs');
+    $db = $mongoClient->selectDatabase('WE4BDB');
     $logCollection = $db->selectCollection('api_history');
     $imageCollection = $db->selectCollection('images');
 } catch (\Exception $e) {

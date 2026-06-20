@@ -18,6 +18,7 @@ export class ItemDetailComponent implements OnInit {
   vendeurReviews: any[] = [];
   loading: boolean = true;
   isOwner: boolean = false;
+  isAdmin: boolean = false;
   isDeleting: boolean = false;
   selectedImageIndex: number = 0;
   readonly backendUrl = 'http://localhost:8000';
@@ -39,6 +40,7 @@ export class ItemDetailComponent implements OnInit {
     this.vendeur = null;
     this.vendeurReviews = [];
     this.isOwner = false;
+    this.isAdmin = false;
     
     this.api.getItem(id).subscribe({
       next: (data) => {
@@ -47,6 +49,7 @@ export class ItemDetailComponent implements OnInit {
         this.images = data.images || [];
         this.similarAds = data.similarAds || [];
         this.isOwner = !!data.isOwner;
+        this.isAdmin = !!data.isAdmin;
         
         // Load seller info if we have a vendeur_id
         if (this.item && this.item.vendeur_id) {

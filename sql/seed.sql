@@ -20,7 +20,10 @@ INSERT INTO users (email, password, nom, prenom, telephone, is_admin) VALUES
 ('isabelle.brest@gmail.com', 'hash123', 'Lefevre', 'Isabelle', '0698765432', 0),
 ('sebastien.mtp@gmail.com', 'hash123', 'Moreau', 'Sebastien', '0687654321', 0),
 ('anne.lyon@gmail.com', 'hash123', 'Garneau', 'Anne', '0676543210', 0),
-('pierre.marseille@gmail.com', 'hash123', 'Blanc', 'Pierre', '0665432109', 0);
+('pierre.marseille@gmail.com', 'hash123', 'Blanc', 'Pierre', '0665432109', 0),
+('admin@gmail.com', '$2y$10$J8Hc3w6LRgkWr/ISvw2eyuj.6F2QaGyvA7cOuY5rulmWJSqaDaGnq', 'Admin', 'Admin', '0384031122', 1);
+
+
 
 -- ==========================================================
 -- 2. CATEGORIES

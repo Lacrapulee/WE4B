@@ -75,5 +75,5 @@ Pour accepter le téléversement d'images volumineuses, les variables PHP suivan
 *   `memory_limit = -1`
 
 ---
-*Projet développé dans le cadre des UE WE4B et SI40 - UTBM*
+*Projet développé dans le cadre des UE WE4B et SI40 - UTBM. *
 *GESSER Manon, MUNCH Raphaël, NOEL Gauthier*
